@@ -51,7 +51,7 @@ const Suppliers = () => {
     setShowForm(false);
   };
 
-  if (user && user.rol !== 'admin') {
+  if (user && user.rol !== 'admin' && user.rol !== 'demo_admin') {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">

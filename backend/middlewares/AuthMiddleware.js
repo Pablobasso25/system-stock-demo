@@ -1,27 +1,18 @@
-import jwt from 'jsonwebtoken';
+import { tenantContext as protect } from './TenantMiddleware.js';
 
-export const protect = (req, res, next) => {
-  if (!req.headers.authorization || !req.headers.authorization.toLowerCase().startsWith('bearer')) {
-    return res.status(401).json({ message: 'No autorizado, no hay token' });
-  }
-
-  try {
-    const token = req.headers.authorization.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded.id || !decoded.rol) {
-      return res.status(401).json({ message: 'No autorizado, token inválido' });
-    }
-    req.user = decoded;
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: 'No autorizado, token inválido' });
-  }
-};
+export { protect };
 
 export const admin = (req, res, next) => {
-  if (req.user && req.user.rol === 'admin') {
+  if (req.user && (req.user.rol === 'admin' || req.user.rol === 'demo_admin')) {
     next();
   } else {
     res.status(403).json({ message: 'Acceso denegado, se requiere rol de administrador' });
   }
+};
+
+export const blockDemo = (req, res, next) => {
+  if (req.user && req.user.rol === 'demo_admin') {
+    return res.status(403).json({ message: 'Acción no disponible en modo demostración' });
+  }
+  next();
 };
