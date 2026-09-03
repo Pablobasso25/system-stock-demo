@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { tenantPlugin } from '../../plugins/tenantPlugin.js';
 
 const cashWithdrawalSchema = new mongoose.Schema(
   {
@@ -22,5 +23,7 @@ const cashWithdrawalSchema = new mongoose.Schema(
 );
 
 cashWithdrawalSchema.index({ createdAt: -1 });
+
+cashWithdrawalSchema.plugin(tenantPlugin);
 
 export default mongoose.model('CashWithdrawal', cashWithdrawalSchema);

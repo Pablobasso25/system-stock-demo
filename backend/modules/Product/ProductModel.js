@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { tenantPlugin } from '../../plugins/tenantPlugin.js';
 
 const variantSubSchema = new mongoose.Schema({
   talle: { type: String, trim: true, default: '' },
@@ -61,5 +62,7 @@ productSchema.pre('save', function (next) {
 
 productSchema.index({ nombre: 'text' });
 productSchema.index({ categoria: 1 });
+
+productSchema.plugin(tenantPlugin);
 
 export default mongoose.model('Product', productSchema);

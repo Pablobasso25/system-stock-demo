@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { tenantPlugin } from '../../plugins/tenantPlugin.js';
 
 const returnSchema = new mongoose.Schema(
   {
@@ -72,5 +73,7 @@ returnSchema.index({ producto: 1, createdAt: -1 });
 returnSchema.index({ productoCargar: 1 });
 returnSchema.index({ sale: 1 });
 returnSchema.index({ createdAt: -1 });
+
+returnSchema.plugin(tenantPlugin);
 
 export default mongoose.model('Return', returnSchema);

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { tenantPlugin } from '../../plugins/tenantPlugin.js';
 
 const notificationSchema = new mongoose.Schema(
   {
@@ -20,7 +21,7 @@ const notificationSchema = new mongoose.Schema(
     creadoPor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      default: null,
     },
     realizadoPor: {
       type: mongoose.Schema.Types.ObjectId,
@@ -51,5 +52,7 @@ const notificationSchema = new mongoose.Schema(
 
 notificationSchema.index({ createdAt: -1 });
 notificationSchema.index({ estado: 1, createdAt: -1 });
+
+notificationSchema.plugin(tenantPlugin);
 
 export default mongoose.model('Notification', notificationSchema);

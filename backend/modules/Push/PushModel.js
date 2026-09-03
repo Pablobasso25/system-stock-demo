@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { tenantPlugin } from '../../plugins/tenantPlugin.js';
 
 const pushSubscriptionSchema = new mongoose.Schema(
   {
@@ -21,5 +22,7 @@ const pushSubscriptionSchema = new mongoose.Schema(
 
 pushSubscriptionSchema.index({ rol: 1 });
 pushSubscriptionSchema.index({ nombre: 1 });
+
+pushSubscriptionSchema.plugin(tenantPlugin);
 
 export default mongoose.model('PushSubscription', pushSubscriptionSchema);

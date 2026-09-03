@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { tenantPlugin } from '../../plugins/tenantPlugin.js';
 
 const itemSchema = new mongoose.Schema({
   producto: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
@@ -10,7 +11,7 @@ const itemSchema = new mongoose.Schema({
 }, { _id: false });
 
 const saleSchema = new mongoose.Schema({
-  ticketNumero: { type: String, unique: true, sparse: true, trim: true },
+  ticketNumero: { type: String, trim: true },
   items: [itemSchema],
   producto: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
   cantidad: { type: Number, min: 1 },
@@ -52,5 +53,8 @@ saleSchema.index({ 'items.producto': 1, createdAt: -1 });
 saleSchema.index({ createdAt: -1 });
 saleSchema.index({ 'pagos.metodo': 1 });
 saleSchema.index({ estado: 1 });
+saleSchema.index({ ticketNumero: 1, tenantId: 1 }, { unique: true, sparse: true });
+
+saleSchema.plugin(tenantPlugin);
 
 export default mongoose.model('Sale', saleSchema);

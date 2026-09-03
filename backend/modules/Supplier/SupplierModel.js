@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
+import { tenantPlugin } from '../../plugins/tenantPlugin.js';
 
 const supplierSchema = new mongoose.Schema(
   {
     nombre: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
     },
     telefono: {
@@ -27,5 +27,9 @@ const supplierSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+supplierSchema.index({ nombre: 1, tenantId: 1 }, { unique: true });
+
+supplierSchema.plugin(tenantPlugin);
 
 export default mongoose.model('Supplier', supplierSchema);

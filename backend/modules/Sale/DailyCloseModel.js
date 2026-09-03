@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { tenantPlugin } from '../../plugins/tenantPlugin.js';
 
 const dailyCloseSchema = new mongoose.Schema({
   fecha: {
@@ -33,6 +34,8 @@ const dailyCloseSchema = new mongoose.Schema({
   totalRetiros: { type: Number, default: 0 },
 });
 
-dailyCloseSchema.index({ fecha: 1, turno: 1 }, { unique: true });
+dailyCloseSchema.index({ fecha: 1, turno: 1, tenantId: 1 }, { unique: true });
+
+dailyCloseSchema.plugin(tenantPlugin);
 
 export default mongoose.model('DailyClose', dailyCloseSchema);
