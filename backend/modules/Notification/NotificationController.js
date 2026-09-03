@@ -27,7 +27,7 @@ export const createNotification = async (req, res, next) => {
     const data = createNotificationSchema.parse(req.body);
     const notification = await Notification.create({
       ...data,
-      creadoPor: req.user.id,
+      creadoPor: req.user.id || null,
     });
 
     void enviarEvento({

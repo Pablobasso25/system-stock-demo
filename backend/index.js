@@ -8,6 +8,8 @@ import rateLimit from 'express-rate-limit';
 import { connectDB } from './config/db.js';
 import { errorHandler } from './middlewares/ErrorMiddleware.js';
 import AuthRoutes from './modules/Auth/AuthRoutes.js';
+import DemoRoutes from './modules/Demo/DemoRoutes.js';
+import { ensureMasterTenant } from './services/tenantService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -61,6 +63,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth', AuthRoutes);
+app.use('/api/demo', DemoRoutes);
 app.use('/api/suppliers', SupplierRoutes);
 app.use('/api/products', ProductRoutes);
 app.use('/api/returns', ReturnRoutes);
@@ -83,22 +86,22 @@ if (!isDev) {
 
 app.use(errorHandler);
 
-const seedUser = async (nombre, email, password, rol) => {
+const seedUser = async (nombre, email, password, rol, tenantId) => {
   const exists = await User.exists({ email });
   if (exists) return;
   try {
-    await User.create({ nombre, email, password, rol });
+    await User.create({ nombre, email, password, rol, tenantId });
   } catch (error) {
     if (error.code !== 11000) throw error;
   }
 };
 
-const seedUsers = async () => {
+const seedUsers = async (masterTenantId) => {
   try {
-    await seedUser('Admin', process.env.ADMIN_EMAIL, process.env.ADMIN_PASSWORD, 'admin');
+    await seedUser('Admin', process.env.ADMIN_EMAIL, process.env.ADMIN_PASSWORD, 'admin', masterTenantId);
     if (isDev) console.log('Usuario admin verificado');
 
-    await seedUser('Empleado', process.env.EMPLEADO_EMAIL, process.env.EMPLEADO_PASSWORD, 'user');
+    await seedUser('Empleado', process.env.EMPLEADO_EMAIL, process.env.EMPLEADO_PASSWORD, 'user', masterTenantId);
     if (isDev) console.log('Usuario empleado verificado');
   } catch (error) {
     console.error('Error al crear usuarios:', error.message);
@@ -107,7 +110,8 @@ const seedUsers = async () => {
 
 connectDB()
   .then(async () => {
-    await seedUsers();
+    const masterTenant = await ensureMasterTenant();
+    await seedUsers(masterTenant._id);
     try {
       await Sale.init();
       const migradas = await ensureTicketNumbers();

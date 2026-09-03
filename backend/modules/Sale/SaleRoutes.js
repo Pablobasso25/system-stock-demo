@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { createSale, deleteSale, getSales, getSalesStats, getMostSold, getDailyClose, getDailyCloses, deleteDailyClose, resendCloseMail, mailTest, mailStatus, netProbe, runMigration, migrateTickets } from './SaleController.js';
-import { protect, admin } from '../../middlewares/AuthMiddleware.js';
+import { protect, admin, blockDemo } from '../../middlewares/AuthMiddleware.js';
 
 const router = Router();
 
@@ -9,16 +9,16 @@ router.use(protect);
 router.post('/daily-close', getDailyClose);
 router.get('/daily-closes', getDailyCloses);
 router.delete('/daily-closes/:id', admin, deleteDailyClose);
-router.post('/daily-closes/:id/resend-mail', admin, resendCloseMail);
+router.post('/daily-closes/:id/resend-mail', admin, blockDemo, resendCloseMail);
 router.get('/stats', getSalesStats);
 router.get('/most-sold', getMostSold);
 router.get('/', getSales);
 if (process.env.NODE_ENV !== 'production') {
-  router.post('/mail-test', admin, mailTest);
-  router.get('/mail-status', admin, mailStatus);
-  router.get('/net-probe', admin, netProbe);
-  router.post('/migrate', admin, runMigration);
-  router.post('/migrate-tickets', admin, migrateTickets);
+  router.post('/mail-test', admin, blockDemo, mailTest);
+  router.get('/mail-status', admin, blockDemo, mailStatus);
+  router.get('/net-probe', admin, blockDemo, netProbe);
+  router.post('/migrate', admin, blockDemo, runMigration);
+  router.post('/migrate-tickets', admin, blockDemo, migrateTickets);
 }
 router.post('/', createSale);
 router.delete('/:id', admin, deleteSale);

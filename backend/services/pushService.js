@@ -1,5 +1,6 @@
 import webpush from 'web-push';
 import PushSubscription from '../modules/Push/PushModel.js';
+import { getTenantContext } from './tenantScope.js';
 
 const configurado = () => Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
 
@@ -27,6 +28,7 @@ export const registrarSuscripcion = async ({ endpoint, keys }, user) => {
         email: user.email || '',
         nombre: user.nombre || '',
         rol: user.rol || 'user',
+        tenantId: getTenantContext()?.tenantId || user.tenantId || null,
         actualizadoAt: new Date(),
       },
     },
@@ -48,7 +50,10 @@ const construirFiltro = (para) => {
 export const enviarEvento = async ({ tipo, titulo, mensaje, url = '/', para = 'todos' }) => {
   if (!configurado()) return;
   try {
-    const subs = await PushSubscription.find(construirFiltro(para));
+    const filter = construirFiltro(para);
+    const tenantId = getTenantContext()?.tenantId;
+    if (tenantId) filter.tenantId = tenantId;
+    const subs = await PushSubscription.find(filter);
     if (subs.length === 0) return;
 
     const payload = JSON.stringify({

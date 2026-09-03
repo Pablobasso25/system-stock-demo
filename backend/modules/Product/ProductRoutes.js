@@ -11,7 +11,7 @@ import {
   migrateVariants,
   getLowStock,
 } from './ProductController.js';
-import { protect, admin } from '../../middlewares/AuthMiddleware.js';
+import { protect, admin, blockDemo } from '../../middlewares/AuthMiddleware.js';
 
 const router = Router();
 
@@ -27,7 +27,7 @@ router.put('/:id/add-stock', admin, addStock);
 router.post('/exchange', exchangeProduct);
 router.delete('/:id', admin, deleteProduct);
 if (process.env.NODE_ENV !== 'production') {
-  router.post('/migrate-variants', admin, migrateVariants);
+  router.post('/migrate-variants', admin, blockDemo, migrateVariants);
 }
 
 export default router;
