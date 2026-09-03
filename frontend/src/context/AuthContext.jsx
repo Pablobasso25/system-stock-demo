@@ -16,22 +16,29 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   }, []);
 
-  useEffect(() => {
+  const refreshSession = useCallback(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      getMe()
-        .then((res) => setUser(res.data))
-        .catch((err) => {
-          const status = err.response?.status;
-          if (status === 401 || status === 404) {
-            clearSession();
-          }
-        })
-        .finally(() => setLoading(false));
-    } else {
+    if (!token) {
+      setUser(null);
       setLoading(false);
+      return Promise.resolve();
     }
+    setLoading(true);
+    return getMe()
+      .then((res) => setUser(res.data))
+      .catch((err) => {
+        const status = err.response?.status;
+        if (status === 401 || status === 404) {
+          clearSession();
+        }
+        throw err;
+      })
+      .finally(() => setLoading(false));
   }, [clearSession]);
+
+  useEffect(() => {
+    refreshSession().catch(() => {});
+  }, [refreshSession]);
 
   useEffect(() => {
     const handleUnauthorized = () => clearSession();
@@ -50,7 +57,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );

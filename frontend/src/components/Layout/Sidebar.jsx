@@ -15,7 +15,8 @@ const links = [
 const Sidebar = () => {
   const { pendingCount } = useNotifications();
   const { user } = useAuth();
-  const visibleLinks = links.filter((link) => !link.adminOnly || user?.rol === 'admin');
+  const isAdmin = user?.rol === 'admin' || user?.rol === 'demo_admin';
+  const visibleLinks = links.filter((link) => !link.adminOnly || isAdmin);
   return (
     <aside className="hidden md:flex w-[260px] bg-ios-surface/70 backdrop-blur-2xl border-r border-ios-separator/40 flex-col shrink-0">
       <div className="px-5 pt-7 pb-6">

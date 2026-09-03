@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../../api/auth';
+import { createDemoSession } from '../../api/demo';
 import { useAuth } from '../../context/AuthContext';
 import { getApiErrorMessage } from '../../utils/apiError';
 import IosButton from '../../components/ui/IosButton';
@@ -9,8 +11,10 @@ const LoginModal = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,6 +27,19 @@ const LoginModal = () => {
       setError(getApiErrorMessage(err, 'Error al iniciar sesión'));
     } finally {
       setLoading(false);    
+    }
+  };
+
+  const handleDemo = async () => {
+    setError('');
+    setDemoLoading(true);
+    try {
+      const res = await createDemoSession();
+      navigate(`/demo-access?token=${res.data.token}`, { replace: true });
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'No se pudo crear la sesión demo'));
+    } finally {
+      setDemoLoading(false);
     }
   };
 
@@ -104,6 +121,30 @@ const LoginModal = () => {
             )}
           </IosButton>
         </form>
+
+        <div className="mt-6 pt-5 border-t border-ios-separator/50">
+          <button
+            type="button"
+            onClick={handleDemo}
+            disabled={demoLoading}
+            className="w-full flex items-center justify-center gap-2 py-2 text-[13px] font-semibold text-ios-tint hover:opacity-80 disabled:opacity-50 transition-opacity"
+          >
+            {demoLoading ? (
+              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            )}
+            Probar demo sin registrarme
+          </button>
+          <p className="text-center text-[11px] text-ios-tertiary mt-1">
+            Datos de ejemplo, se restablecen automáticamente cada 7 días
+          </p>
+        </div>
       </div>
     </div>
   );

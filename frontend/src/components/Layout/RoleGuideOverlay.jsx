@@ -72,7 +72,7 @@ const RoleGuideOverlay = () => {
   const { user } = useAuth();
   const [visible, setVisible] = useState(false);
 
-  const rol = user?.rol === 'admin' ? 'admin' : 'empleado';
+  const rol = user?.rol === 'admin' || user?.rol === 'demo_admin' ? 'admin' : 'empleado';
   const items = contenido[rol];
   const key = KEY_PREFIX + rol;
 

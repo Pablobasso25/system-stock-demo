@@ -15,7 +15,8 @@ const links = [
 const MobileNav = () => {
   const { pendingCount } = useNotifications();
   const { user } = useAuth();
-  const visibleLinks = links.filter((link) => !link.adminOnly || user?.rol === 'admin');
+  const isAdmin = user?.rol === 'admin' || user?.rol === 'demo_admin';
+  const visibleLinks = links.filter((link) => !link.adminOnly || isAdmin);
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-ios-surface/90 backdrop-blur-2xl border-t border-ios-separator/50 safe-bottom">
       <div className="grid grid-cols-6">

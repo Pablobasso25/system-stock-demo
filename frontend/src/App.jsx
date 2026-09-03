@@ -9,6 +9,7 @@ import Returns from './pages/Returns/Returns'
 import Sales from './pages/Sales/Sales'
 import Tickets from './pages/Tickets/Tickets'
 import Notifications from './pages/Notifications/Notifications'
+import DemoAccess from './pages/DemoAccess/DemoAccess'
 import LoadingSpinner from './components/common/LoadingSpinner'
 import WelcomeOverlay from './components/Layout/WelcomeOverlay'
 import RoleGuideOverlay from './components/Layout/RoleGuideOverlay'
@@ -44,6 +45,7 @@ function App() {
           <Route path="returns" element={<Returns />} />
           <Route path="notifications" element={<Notifications />} />
         </Route>
+        <Route path="/demo-access" element={<DemoAccess />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {!user && <LoginModal />}
