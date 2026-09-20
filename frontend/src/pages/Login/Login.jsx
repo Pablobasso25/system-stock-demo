@@ -1,21 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { iniciarSesion } from '../../api/autenticacion';
 import { enterDemoSession } from '../../api/demo';
-import { useAutenticacion } from '../../context/AutenticacionContext';
 import { obtenerMensajeErrorApi } from '../../utils/apiError';
 import IosButton from '../../components/ui/IosButton';
-import { IconEye, IconEyeOff } from '../../components/ui/icons';
 
 const LoginModal = () => {
-  const [showLogin, setShowLogin] = useState(false);
   const [local, setLocal] = useState('');
-  const [form, setForm] = useState({ email: '', clave: '' });
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
-  const [showPw, setShowPw] = useState(false);
-  const { login } = useAutenticacion();
   const navigate = useNavigate();
   const mountedRef = useRef(true);
 
@@ -25,21 +17,6 @@ const LoginModal = () => {
       mountedRef.current = false;
     };
   }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (loading) return;
-    setError('');
-    setLoading(true);
-    try {
-      const res = await iniciarSesion({ ...form, email: form.email.trim() });
-      login(res.data);
-    } catch (err) {
-      if (mountedRef.current) setError(obtenerMensajeErrorApi(err, 'Error al iniciar sesión'));
-    } finally {
-      if (mountedRef.current) setLoading(false);
-    }
-  };
 
   const handleDemo = async () => {
     if (demoLoading) return;
@@ -70,9 +47,16 @@ const LoginModal = () => {
           </div>
         </div>
 
-        <div className="text-center mb-7">
+        <div className="text-center mb-5">
           <h1 className="text-[28px] font-bold text-ios-label tracking-tight">NexusCode</h1>
           <p className="text-ios-secondary text-sm mt-1 font-medium">Sistema de stock</p>
+        </div>
+
+        <div className="bg-ios-tint/10 border border-ios-tint/25 rounded-ios-control px-3.5 py-3 mb-5">
+          <p className="text-[12px] text-ios-tint font-medium leading-snug text-center">
+            ¿Ya probaste la demo? Escribí el mismo nombre de local y volvés a entrar con todos tus datos.
+            Se conservan 7 días.
+          </p>
         </div>
 
         {error && (
@@ -84,126 +68,43 @@ const LoginModal = () => {
           </div>
         )}
 
-        {!showLogin ? (
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-[13px] text-ios-secondary font-medium ml-1">Nombre de tu local</label>
-              <input
-                type="text"
-                value={local}
-                onChange={(e) => setLocal(e.target.value)}
-                maxLength={60}
-                className="w-full px-4 py-3 bg-ios-surface2 rounded-ios-control text-ios-label placeholder:text-ios-tertiary focus:outline-none focus:ring-2 focus:ring-ios-tint/40 transition-all"
-                placeholder="Ej: Tienda Los Andes"
-                autoFocus
-              />
-            </div>
-            <IosButton
-              type="button"
-              onClick={handleDemo}
-              disabled={demoLoading || !local.trim()}
-              size="lg"
-              className="w-full py-3.5 rounded-ios-pill"
-              variant="primary"
-            >
-              {demoLoading ? (
-                <>
-                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Preparando demo...
-                </>
-              ) : (
-                'Probar demo sin registrarme'
-              )}
-            </IosButton>
-            <p className="text-center text-[11px] text-ios-tertiary">
-              Si ya probaste antes, escribí el mismo nombre de local y volvés a entrar con tus datos.
-              Se conservan 7 días.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setError('');
-                setShowLogin(true);
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-[13px] text-ios-secondary font-medium ml-1">Nombre de tu local</label>
+            <input
+              type="text"
+              value={local}
+              onChange={(e) => setLocal(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleDemo();
               }}
-              className="w-full text-center text-[12px] text-ios-tertiary hover:text-ios-secondary transition-colors pt-1"
-            >
-              Acceso administrador
-            </button>
+              maxLength={60}
+              className="w-full px-4 py-3 bg-ios-surface2 rounded-ios-control text-ios-label placeholder:text-ios-tertiary focus:outline-none focus:ring-2 focus:ring-ios-tint/40 transition-all"
+              placeholder="Ej: Tienda Los Andes"
+              autoFocus
+            />
           </div>
-        ) : (
-          <>
-            <form onSubmit={handleSubmit} className="space-y-3.5">
-              <div className="space-y-1.5">
-                <label className="text-[13px] text-ios-secondary font-medium ml-1">Email</label>
-                <input
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-4 py-3 bg-ios-surface2 rounded-ios-control text-ios-label placeholder:text-ios-tertiary focus:outline-none focus:ring-2 focus:ring-ios-tint/40 transition-all"
-                  placeholder="usuario@ejemplo.com"
-                  autoFocus
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[13px] text-ios-secondary font-medium ml-1">Contraseña</label>
-                <div className="relative">
-                  <input
-                    type={showPw ? 'text' : 'password'}
-                    required
-                    value={form.clave}
-                    onChange={(e) => setForm({ ...form, clave: e.target.value })}
-                    className="w-full px-4 py-3 pr-11 bg-ios-surface2 rounded-ios-control text-ios-label placeholder:text-ios-tertiary focus:outline-none focus:ring-2 focus:ring-ios-tint/40 transition-all"
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPw(!showPw)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ios-tertiary hover:text-ios-label transition-colors p-1"
-                    aria-label={showPw ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  >
-                    {showPw ? <IconEyeOff className="w-5 h-5" /> : <IconEye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-              <IosButton
-                type="submit"
-                disabled={loading}
-                size="lg"
-                className="w-full py-3.5 rounded-ios-pill mt-2"
-                variant="primary"
-              >
-                {loading ? (
-                  <>
-                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Ingresando...
-                  </>
-                ) : (
-                  'Ingresar'
-                )}
-              </IosButton>
-            </form>
-
-            <div className="mt-6 pt-5 border-t border-ios-separator/50">
-              <button
-                type="button"
-                onClick={() => {
-                  setError('');
-                  setShowLogin(false);
-                }}
-                className="w-full text-center text-[12px] text-ios-tertiary hover:text-ios-secondary transition-colors"
-              >
-                Volver al acceso demo
-              </button>
-            </div>
-          </>
-        )}
+          <IosButton
+            type="button"
+            onClick={handleDemo}
+            disabled={demoLoading || !local.trim()}
+            size="lg"
+            className="w-full py-3.5 rounded-ios-pill"
+            variant="primary"
+          >
+            {demoLoading ? (
+              <>
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Preparando demo...
+              </>
+            ) : (
+              'Probar demo sin registrarme'
+            )}
+          </IosButton>
+        </div>
       </div>
     </div>
   );
