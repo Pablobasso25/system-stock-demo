@@ -18,9 +18,21 @@ const normalizarUsuario = (data) => {
   return data;
 };
 
+const tokenEsDemo = () => {
+  const token = getItem('token');
+  if (!token) return false;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return String(payload.rol || '').startsWith('demo_');
+  } catch {
+    return false;
+  }
+};
+
 export const AutenticacionProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [demoExpirada, setDemoExpirada] = useState(false);
   const navigate = useNavigate();
   const { toast } = useIosAlert();
 
@@ -54,6 +66,7 @@ export const AutenticacionProvider = ({ children }) => {
       .catch((err) => {
         const status = err.response?.status;
         if (status === 401 || status === 404) {
+          if (tokenEsDemo()) setDemoExpirada(true);
           clearSession();
         }
         throw err;
@@ -70,12 +83,20 @@ export const AutenticacionProvider = ({ children }) => {
   useEffect(() => {
     const handleUnauthorized = () => {
       const habiaSesion = Boolean(usuarioRef.current);
+      const eraDemo = Boolean(usuarioRef.current?.esDemo);
+      if (eraDemo || tokenEsDemo()) setDemoExpirada(true);
       clearSession();
       if (!habiaSesion) return;
       const ahora = Date.now();
       if (ahora - avisoRef.current < 5000) return;
       avisoRef.current = ahora;
-      toast({ message: 'Sesión expirada, iniciá sesión de nuevo', type: 'info', duration: 3200 });
+      toast({
+        message: eraDemo
+          ? 'Tu tiempo de prueba expiró, creá una demo nueva'
+          : 'Sesión expirada, iniciá sesión de nuevo',
+        type: 'info',
+        duration: 4000,
+      });
     };
     window.addEventListener('auth-unauthorized', handleUnauthorized);
     return () => window.removeEventListener('auth-unauthorized', handleUnauthorized);
@@ -95,9 +116,13 @@ export const AutenticacionProvider = ({ children }) => {
     clearSession();
   }, [clearSession]);
 
+  const limpiarDemoExpirada = useCallback(() => {
+    setDemoExpirada(false);
+  }, []);
+
   const value = useMemo(
-    () => ({ usuario, loading, login, logout, refreshSession, actualizarUsuario }),
-    [usuario, loading, login, logout, refreshSession, actualizarUsuario]
+    () => ({ usuario, loading, login, logout, refreshSession, actualizarUsuario, demoExpirada, limpiarDemoExpirada }),
+    [usuario, loading, login, logout, refreshSession, actualizarUsuario, demoExpirada, limpiarDemoExpirada]
   );
 
   return (

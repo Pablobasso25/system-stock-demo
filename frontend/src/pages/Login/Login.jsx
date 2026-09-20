@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { enterDemoSession } from '../../api/demo';
+import { useAutenticacion } from '../../context/AutenticacionContext';
 import { obtenerMensajeErrorApi } from '../../utils/apiError';
+import { getItem, setItem } from '../../utils/storage';
 import IosButton from '../../components/ui/IosButton';
 
 const LoginModal = () => {
-  const [local, setLocal] = useState('');
+  const [local, setLocal] = useState(() => getItem('demoLocal') || '');
   const [error, setError] = useState('');
   const [demoLoading, setDemoLoading] = useState(false);
+  const { demoExpirada, limpiarDemoExpirada } = useAutenticacion();
   const navigate = useNavigate();
   const mountedRef = useRef(true);
 
@@ -29,6 +32,8 @@ const LoginModal = () => {
     setDemoLoading(true);
     try {
       const res = await enterDemoSession({ clientName });
+      setItem('demoLocal', clientName);
+      limpiarDemoExpirada();
       navigate(`/demo-access?token=${res.data.token}`, { replace: true });
     } catch (err) {
       if (mountedRef.current) setError(obtenerMensajeErrorApi(err, 'No se pudo iniciar la sesión demo'));
@@ -52,12 +57,21 @@ const LoginModal = () => {
           <p className="text-ios-secondary text-sm mt-1 font-medium">Sistema de stock</p>
         </div>
 
-        <div className="bg-ios-tint/10 border border-ios-tint/25 rounded-ios-control px-3.5 py-3 mb-5">
-          <p className="text-[12px] text-ios-tint font-medium leading-snug text-center">
-            ¿Ya probaste la demo? Escribí el mismo nombre de local y volvés a entrar con todos tus datos.
-            Se conservan 7 días.
-          </p>
-        </div>
+        {demoExpirada ? (
+          <div className="bg-ios-red/10 border border-ios-red/25 rounded-ios-control px-3.5 py-3 mb-5">
+            <p className="text-[12px] text-ios-red font-medium leading-snug text-center">
+              Tu tiempo de prueba expiró y la demo anterior se borró. Escribí el nombre de tu local para crear
+              una demo nueva.
+            </p>
+          </div>
+        ) : (
+          <div className="bg-ios-tint/10 border border-ios-tint/25 rounded-ios-control px-3.5 py-3 mb-5">
+            <p className="text-[12px] text-ios-tint font-medium leading-snug text-center">
+              ¿Ya probaste la demo? Escribí el mismo nombre de local y volvés a entrar con todos tus datos.
+              Se conservan 7 días.
+            </p>
+          </div>
+        )}
 
         {error && (
           <div className="bg-ios-red/10 text-ios-red px-4 py-2.5 rounded-ios-control mb-4 text-[13px] font-medium flex items-center gap-2.5">
