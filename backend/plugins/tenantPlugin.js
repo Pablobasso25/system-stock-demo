@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
-import { getTenantContext } from '../services/tenantScope.js';
+import { getTenantContext, getDefaultTenantId } from '../services/tenantScope.js';
 
 const getScopeTenantId = () => {
   const ctx = getTenantContext();
-  return ctx?.tenantId || null;
+  return ctx?.tenantId || getDefaultTenantId() || null;
 };
 
 const appendTenantFilter = (query) => {

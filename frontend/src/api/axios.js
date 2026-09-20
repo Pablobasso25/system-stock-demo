@@ -1,12 +1,15 @@
 import axios from 'axios';
+import { getItem, removeItem } from '../utils/storage';
+import { reportarError } from '../utils/ReporteroErrores';
+import { API_BASE_URL } from '../utils/apiBase';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: API_BASE_URL,
   timeout: 30000,
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -16,14 +19,23 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      const url = error.config?.url || '';
+    const url = error.config?.url || '';
+    const status = error.response?.status;
 
+    if (!error.response || status >= 500) {
+      const metodo = (error.config?.method || 'get').toUpperCase();
+      reportarError(error, {
+        lugar: `axios ${metodo} ${url}`,
+        status: status || error.code || 'sin respuesta',
+      });
+    }
+
+    if (status === 401) {
       if (url === '/auth/login') {
         return Promise.reject(error);
       }
 
-      localStorage.removeItem('token');
+      removeItem('token');
       window.dispatchEvent(new Event('auth-unauthorized'));
     }
     return Promise.reject(error);

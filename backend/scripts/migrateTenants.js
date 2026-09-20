@@ -1,34 +1,36 @@
 import '../config/env.js';
 import { connectDB } from '../config/db.js';
-import User from '../modules/Auth/AuthModel.js';
-import Product from '../modules/Product/ProductModel.js';
-import Sale from '../modules/Sale/SaleModel.js';
-import Return from '../modules/Return/ReturnModel.js';
-import Supplier from '../modules/Supplier/SupplierModel.js';
-import Notification from '../modules/Notification/NotificationModel.js';
-import CashWithdrawal from '../modules/CashWithdrawal/CashWithdrawalModel.js';
-import CashWithdrawalDay from '../modules/CashWithdrawal/CashWithdrawalDayModel.js';
-import DailyClose from '../modules/Sale/DailyCloseModel.js';
-import PushSubscription from '../modules/Push/PushModel.js';
+import Usuario from '../modules/Autenticacion/UsuarioModel.js';
+import Producto from '../modules/Producto/ProductoModel.js';
+import Venta from '../modules/Venta/VentaModel.js';
+import Devolucion from '../modules/Devolucion/DevolucionModel.js';
+import Proveedor from '../modules/Proveedor/ProveedorModel.js';
+import Notificacion from '../modules/Notificacion/NotificacionModel.js';
+import MovimientoStock from '../modules/MovimientoStock/MovimientoStockModel.js';
+import RetiroCaja from '../modules/RetiroCaja/RetiroCajaModel.js';
+import RetiroCajaDia from '../modules/RetiroCaja/RetiroCajaDiaModel.js';
+import CierreCaja from '../modules/Venta/CierreCajaModel.js';
+import SuscripcionPush from '../modules/Push/PushModel.js';
 import { ensureMasterTenant } from '../services/tenantService.js';
 
 const MODELS = [
-  Product,
-  Sale,
-  Return,
-  Supplier,
-  Notification,
-  CashWithdrawal,
-  CashWithdrawalDay,
-  DailyClose,
-  PushSubscription,
+  Producto,
+  Venta,
+  Devolucion,
+  Proveedor,
+  Notificacion,
+  MovimientoStock,
+  RetiroCaja,
+  RetiroCajaDia,
+  CierreCaja,
+  SuscripcionPush,
 ];
 
 const LEGACY_UNIQUE_INDEXES = [
-  ['Sale', 'ticketNumero_1'],
-  ['Supplier', 'nombre_1'],
-  ['DailyClose', 'fecha_1_turno_1'],
-  ['CashWithdrawalDay', 'fecha_1'],
+  ['Venta', 'ticketNumero_1'],
+  ['Proveedor', 'nombre_1'],
+  ['CierreCaja', 'fecha_1_turno_1'],
+  ['RetiroCajaDia', 'fecha_1'],
 ];
 
 const run = async () => {
@@ -48,12 +50,12 @@ const run = async () => {
     console.log(`${Model.modelName}: ${result.modifiedCount} documentos asignados al tenant maestro`);
   }
 
-  const users = await User.updateMany(
+  const usuarios = await Usuario.updateMany(
     { tenantId: { $exists: false } },
     { $set: { tenantId: master._id } }
   );
-  total += users.modifiedCount;
-  console.log(`User: ${users.modifiedCount} documentos asignados al tenant maestro`);
+  total += usuarios.modifiedCount;
+  console.log(`Usuario: ${usuarios.modifiedCount} documentos asignados al tenant maestro`);
 
   for (const [modelName, indexName] of LEGACY_UNIQUE_INDEXES) {
     const Model = MODELS.find((m) => m.modelName === modelName);
@@ -67,7 +69,7 @@ const run = async () => {
     }
   }
 
-  for (const Model of [...MODELS, User]) {
+  for (const Model of [...MODELS, Usuario]) {
     await Model.syncIndexes();
   }
   console.log('Índices sincronizados (compuestos por tenantId)');

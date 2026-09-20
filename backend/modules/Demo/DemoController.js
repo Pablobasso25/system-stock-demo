@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import Tenant from '../../models/Tenant.js';
-import Product from '../Product/ProductModel.js';
+import Producto from '../Producto/ProductoModel.js';
 import { DEMO_PRODUCTS } from './demoCatalog.js';
 
 const DEMO_TOKEN_TTL = '7d';
@@ -39,12 +39,12 @@ export const createDemoSession = async (req, res, next) => {
       return res.status(500).json({ message: 'No se pudo generar la sesión, intente nuevamente' });
     }
 
-    await Product.insertMany(
+    await Producto.insertMany(
       DEMO_PRODUCTS.map((p) => ({ ...p, tenantId: tenant._id }))
     );
 
     const token = jwt.sign(
-      { tenantId: tenant._id, slug: tenant.slug, role: 'demo_admin' },
+      { tenantId: tenant._id, slug: tenant.slug, rol: 'demo_admin' },
       process.env.JWT_SECRET,
       { expiresIn: DEMO_TOKEN_TTL }
     );

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAutenticacion } from '../../context/AutenticacionContext';
+import { setItem, removeItem } from '../../utils/storage';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const DemoAccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { refreshSession } = useAuth();
+  const { refreshSession } = useAutenticacion();
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -17,7 +18,7 @@ const DemoAccess = () => {
     }
 
     let cancelled = false;
-    localStorage.setItem('token', token);
+    setItem('token', token);
 
     refreshSession()
       .then(() => {
@@ -25,7 +26,7 @@ const DemoAccess = () => {
       })
       .catch(() => {
         if (cancelled) return;
-        localStorage.removeItem('token');
+        removeItem('token');
         setError('El enlace de demostración es inválido o expiró. Generá una nueva sesión demo para continuar.');
       });
 

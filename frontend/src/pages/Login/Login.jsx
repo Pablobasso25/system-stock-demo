@@ -1,32 +1,41 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../../api/auth';
+import { iniciarSesion } from '../../api/autenticacion';
 import { createDemoSession } from '../../api/demo';
-import { useAuth } from '../../context/AuthContext';
-import { getApiErrorMessage } from '../../utils/apiError';
+import { useAutenticacion } from '../../context/AutenticacionContext';
+import { obtenerMensajeErrorApi } from '../../utils/apiError';
 import IosButton from '../../components/ui/IosButton';
 import { IconEye, IconEyeOff } from '../../components/ui/icons';
 
 const LoginModal = () => {
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: '', clave: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
   const [showPw, setShowPw] = useState(false);
-  const { login } = useAuth();
+  const { login } = useAutenticacion();
   const navigate = useNavigate();
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setError('');
     setLoading(true);
     try {
-      const res = await loginUser({ ...form, email: form.email.trim() });
+      const res = await iniciarSesion({ ...form, email: form.email.trim() });
       login(res.data);
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Error al iniciar sesión'));
+      if (mountedRef.current) setError(obtenerMensajeErrorApi(err, 'Error al iniciar sesión'));
     } finally {
-      setLoading(false);    
+      if (mountedRef.current) setLoading(false);
     }
   };
 
@@ -37,7 +46,7 @@ const LoginModal = () => {
       const res = await createDemoSession();
       navigate(`/demo-access?token=${res.data.token}`, { replace: true });
     } catch (err) {
-      setError(getApiErrorMessage(err, 'No se pudo crear la sesión demo'));
+      if (mountedRef.current) setError(obtenerMensajeErrorApi(err, 'No se pudo crear la sesión demo'));
     } finally {
       setDemoLoading(false);
     }
@@ -86,8 +95,8 @@ const LoginModal = () => {
               <input
                 type={showPw ? 'text' : 'password'}
                 required
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                value={form.clave}
+                onChange={(e) => setForm({ ...form, clave: e.target.value })}
                 className="w-full px-4 py-3 pr-11 bg-ios-surface2 rounded-ios-control text-ios-label placeholder:text-ios-tertiary focus:outline-none focus:ring-2 focus:ring-ios-tint/40 transition-all"
                 placeholder="••••••••"
               />

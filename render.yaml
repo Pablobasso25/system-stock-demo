@@ -2,20 +2,24 @@ services:
   - type: web
     name: stock-tienda
     runtime: node
-    buildCommand: npm install && npm run build
+    buildCommand: npm ci --prefix backend --omit=dev && npm ci --prefix frontend --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 10000
+      - key: NODE_VERSION
+        value: 22.12.0
       - key: MONGO_URI
         sync: false
       - key: JWT_SECRET
         sync: false
       - key: ALLOWED_ORIGINS
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: AUDIT_OFFSET
         sync: false
       - key: ADMIN_EMAIL
         sync: false

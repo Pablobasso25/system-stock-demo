@@ -7,7 +7,7 @@ export const DEMO_PRODUCTS = [
     categoria: 'Remeras',
     stockMinimo: 3,
     colores: ['Blanco', 'Negro'],
-    variants: [
+    variantes: [
       { talle: 'S', color: 'Blanco', cantidad: 6 },
       { talle: 'M', color: 'Blanco', cantidad: 5 },
       { talle: 'L', color: 'Blanco', cantidad: 4 },
@@ -23,7 +23,7 @@ export const DEMO_PRODUCTS = [
     categoria: 'Remeras',
     stockMinimo: 3,
     colores: ['Gris', 'Verde'],
-    variants: [
+    variantes: [
       { talle: 'M', color: 'Gris', cantidad: 4 },
       { talle: 'L', color: 'Gris', cantidad: 3 },
       { talle: 'M', color: 'Verde', cantidad: 3 },
@@ -37,7 +37,7 @@ export const DEMO_PRODUCTS = [
     categoria: 'Buzos',
     stockMinimo: 4,
     colores: ['Azul', 'Gris'],
-    variants: [
+    variantes: [
       { talle: 'S', color: 'Azul', cantidad: 2 },
       { talle: 'M', color: 'Azul', cantidad: 2 },
       { talle: 'L', color: 'Gris', cantidad: 2 },
@@ -50,7 +50,7 @@ export const DEMO_PRODUCTS = [
     categoria: 'Buzos',
     stockMinimo: 4,
     colores: ['Negro'],
-    variants: [
+    variantes: [
       { talle: 'M', color: 'Negro', cantidad: 1 },
       { talle: 'L', color: 'Negro', cantidad: 1 },
     ],
@@ -62,7 +62,7 @@ export const DEMO_PRODUCTS = [
     categoria: 'Buzos',
     stockMinimo: 3,
     colores: ['Rojo', 'Negro'],
-    variants: [
+    variantes: [
       { talle: 'S', color: 'Rojo', cantidad: 2 },
       { talle: 'M', color: 'Rojo', cantidad: 3 },
       { talle: 'L', color: 'Negro', cantidad: 3 },
@@ -75,7 +75,7 @@ export const DEMO_PRODUCTS = [
     categoria: 'Pantalones',
     stockMinimo: 3,
     colores: ['Azul'],
-    variants: [
+    variantes: [
       { talle: '38', color: 'Azul', cantidad: 5 },
       { talle: '40', color: 'Azul', cantidad: 6 },
       { talle: '42', color: 'Azul', cantidad: 4 },
@@ -88,7 +88,7 @@ export const DEMO_PRODUCTS = [
     categoria: 'Pantalones',
     stockMinimo: 3,
     colores: ['Negro', 'Beige'],
-    variants: [
+    variantes: [
       { talle: '40', color: 'Negro', cantidad: 3 },
       { talle: '42', color: 'Negro', cantidad: 3 },
       { talle: '40', color: 'Beige', cantidad: 2 },
@@ -102,7 +102,7 @@ export const DEMO_PRODUCTS = [
     categoria: 'Pantalones',
     stockMinimo: 4,
     colores: ['Gris'],
-    variants: [{ talle: 'M', color: 'Gris', cantidad: 1 }],
+    variantes: [{ talle: 'M', color: 'Gris', cantidad: 1 }],
     cantidad: 1,
   },
   {
@@ -111,7 +111,7 @@ export const DEMO_PRODUCTS = [
     categoria: 'Pantalones',
     stockMinimo: 3,
     colores: ['Negro', 'Azul'],
-    variants: [
+    variantes: [
       { talle: 'S', color: 'Negro', cantidad: 3 },
       { talle: 'M', color: 'Negro', cantidad: 3 },
       { talle: 'M', color: 'Azul', cantidad: 3 },
@@ -123,7 +123,7 @@ export const DEMO_PRODUCTS = [
     precio: 9900,
     categoria: 'Accesorios',
     stockMinimo: 2,
-    variants: [],
+    variantes: [],
     cantidad: 0,
   },
   {
@@ -131,7 +131,7 @@ export const DEMO_PRODUCTS = [
     precio: 3200,
     categoria: 'Accesorios',
     stockMinimo: 10,
-    variants: [],
+    variantes: [],
     cantidad: 40,
   },
   {
@@ -139,7 +139,7 @@ export const DEMO_PRODUCTS = [
     precio: 7800,
     categoria: 'Accesorios',
     stockMinimo: 3,
-    variants: [],
+    variantes: [],
     cantidad: 6,
   },
 ];
