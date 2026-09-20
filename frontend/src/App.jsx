@@ -11,6 +11,7 @@ import Ventas from './pages/Ventas/Ventas'
 import Tickets from './pages/Tickets/Tickets'
 import Notificaciones from './pages/Notificaciones/Notificaciones'
 import DemoAccess from './pages/DemoAccess/DemoAccess'
+import PanelMaster from './pages/Master/PanelMaster'
 import LoadingSpinner from './components/common/LoadingSpinner'
 import WelcomeOverlay from './components/Layout/WelcomeOverlay'
 import BannerPermisoPush from './components/BannerPermisoPush'
@@ -47,6 +48,7 @@ function App() {
           <Route path="notificaciones" element={<Notificaciones />} />
         </Route>
         <Route path="/demo-access" element={<DemoAccess />} />
+        <Route path="/master" element={<PanelMaster />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {!usuario && <LoginModal />}

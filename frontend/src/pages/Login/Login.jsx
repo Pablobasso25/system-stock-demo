@@ -1,25 +1,48 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { iniciarSesion } from '../../api/autenticacion';
 import { enterDemoSession } from '../../api/demo';
 import { useAutenticacion } from '../../context/AutenticacionContext';
 import { obtenerMensajeErrorApi } from '../../utils/apiError';
 import { getItem, setItem } from '../../utils/storage';
 import IosButton from '../../components/ui/IosButton';
+import { IconEye, IconEyeOff } from '../../components/ui/icons';
 
 const LoginModal = () => {
   const [local, setLocal] = useState(() => getItem('demoLocal') || '');
   const [error, setError] = useState('');
   const [demoLoading, setDemoLoading] = useState(false);
-  const { demoExpirada, limpiarDemoExpirada } = useAutenticacion();
+  const [masterOpen, setMasterOpen] = useState(false);
+  const [form, setForm] = useState({ email: '', clave: '' });
+  const [masterLoading, setMasterLoading] = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const { demoExpirada, limpiarDemoExpirada, login } = useAutenticacion();
   const navigate = useNavigate();
   const mountedRef = useRef(true);
+  const tapsRef = useRef(0);
+  const tapTimerRef = useRef(null);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
     };
   }, []);
+
+  const handleLogoTap = () => {
+    tapsRef.current += 1;
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+    if (tapsRef.current >= 5) {
+      tapsRef.current = 0;
+      setError('');
+      setMasterOpen(true);
+      return;
+    }
+    tapTimerRef.current = setTimeout(() => {
+      tapsRef.current = 0;
+    }, 1500);
+  };
 
   const handleDemo = async () => {
     if (demoLoading) return;
@@ -42,36 +65,41 @@ const LoginModal = () => {
     }
   };
 
+  const handleMasterSubmit = async (e) => {
+    e.preventDefault();
+    if (masterLoading) return;
+    setError('');
+    setMasterLoading(true);
+    try {
+      const res = await iniciarSesion({ ...form, email: form.email.trim() });
+      login(res.data, '/master');
+    } catch (err) {
+      if (mountedRef.current) setError(obtenerMensajeErrorApi(err, 'Error al iniciar sesión'));
+    } finally {
+      if (mountedRef.current) setMasterLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-xl" />
       <div className="relative w-full max-w-sm bg-ios-surface rounded-3xl shadow-ios-alert border border-ios-separator/50 p-8 animate-ios-centered">
         <div className="flex justify-center mb-6">
-          <div className="w-20 h-20 rounded-[22px] bg-gradient-to-br from-ios-tint to-blue-600 flex items-center justify-center shadow-[0_12px_32px_rgba(10,132,255,0.45)] ring-1 ring-white/20">
+          <div
+            onClick={handleLogoTap}
+            role="presentation"
+            className="w-20 h-20 rounded-[22px] bg-gradient-to-br from-ios-tint to-blue-600 flex items-center justify-center shadow-[0_12px_32px_rgba(10,132,255,0.45)] ring-1 ring-white/20 cursor-default select-none"
+          >
             <span className="text-2xl font-bold text-white tracking-wide">NC</span>
           </div>
         </div>
 
         <div className="text-center mb-5">
           <h1 className="text-[28px] font-bold text-ios-label tracking-tight">NexusCode</h1>
-          <p className="text-ios-secondary text-sm mt-1 font-medium">Sistema de stock</p>
+          <p className="text-ios-secondary text-sm mt-1 font-medium">
+            {masterOpen ? 'Acceso principal' : 'Sistema de stock'}
+          </p>
         </div>
-
-        {demoExpirada ? (
-          <div className="bg-ios-red/10 border border-ios-red/25 rounded-ios-control px-3.5 py-3 mb-5">
-            <p className="text-[12px] text-ios-red font-medium leading-snug text-center">
-              Tu tiempo de prueba expiró y la demo anterior se borró. Escribí el nombre de tu local para crear
-              una demo nueva.
-            </p>
-          </div>
-        ) : (
-          <div className="bg-ios-tint/10 border border-ios-tint/25 rounded-ios-control px-3.5 py-3 mb-5">
-            <p className="text-[12px] text-ios-tint font-medium leading-snug text-center">
-              ¿Ya probaste la demo? Escribí el mismo nombre de local y volvés a entrar con todos tus datos.
-              Se conservan 7 días.
-            </p>
-          </div>
-        )}
 
         {error && (
           <div className="bg-ios-red/10 text-ios-red px-4 py-2.5 rounded-ios-control mb-4 text-[13px] font-medium flex items-center gap-2.5">
@@ -82,43 +110,133 @@ const LoginModal = () => {
           </div>
         )}
 
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-[13px] text-ios-secondary font-medium ml-1">Nombre de tu local</label>
-            <input
-              type="text"
-              value={local}
-              onChange={(e) => setLocal(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleDemo();
-              }}
-              maxLength={60}
-              className="w-full px-4 py-3 bg-ios-surface2 rounded-ios-control text-ios-label placeholder:text-ios-tertiary focus:outline-none focus:ring-2 focus:ring-ios-tint/40 transition-all"
-              placeholder="Ej: Tienda Los Andes"
-              autoFocus
-            />
-          </div>
-          <IosButton
-            type="button"
-            onClick={handleDemo}
-            disabled={demoLoading || !local.trim()}
-            size="lg"
-            className="w-full py-3.5 rounded-ios-pill"
-            variant="primary"
-          >
-            {demoLoading ? (
-              <>
-                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                Preparando demo...
-              </>
+        {masterOpen ? (
+          <>
+            <form onSubmit={handleMasterSubmit} className="space-y-3.5">
+              <div className="space-y-1.5">
+                <label className="text-[13px] text-ios-secondary font-medium ml-1">Email</label>
+                <input
+                  type="email"
+                  required
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="w-full px-4 py-3 bg-ios-surface2 rounded-ios-control text-ios-label placeholder:text-ios-tertiary focus:outline-none focus:ring-2 focus:ring-ios-tint/40 transition-all"
+                  placeholder="usuario@ejemplo.com"
+                  autoFocus
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[13px] text-ios-secondary font-medium ml-1">Contraseña</label>
+                <div className="relative">
+                  <input
+                    type={showPw ? 'text' : 'password'}
+                    required
+                    value={form.clave}
+                    onChange={(e) => setForm({ ...form, clave: e.target.value })}
+                    className="w-full px-4 py-3 pr-11 bg-ios-surface2 rounded-ios-control text-ios-label placeholder:text-ios-tertiary focus:outline-none focus:ring-2 focus:ring-ios-tint/40 transition-all"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(!showPw)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ios-tertiary hover:text-ios-label transition-colors p-1"
+                    aria-label={showPw ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    {showPw ? <IconEyeOff className="w-5 h-5" /> : <IconEye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+              <IosButton
+                type="submit"
+                disabled={masterLoading}
+                size="lg"
+                className="w-full py-3.5 rounded-ios-pill mt-2"
+                variant="primary"
+              >
+                {masterLoading ? (
+                  <>
+                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Ingresando...
+                  </>
+                ) : (
+                  'Ingresar'
+                )}
+              </IosButton>
+            </form>
+
+            <div className="mt-6 pt-5 border-t border-ios-separator/50">
+              <button
+                type="button"
+                onClick={() => {
+                  setError('');
+                  setMasterOpen(false);
+                }}
+                className="w-full text-center text-[12px] text-ios-tertiary hover:text-ios-secondary transition-colors"
+              >
+                Volver al acceso demo
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            {demoExpirada ? (
+              <div className="bg-ios-red/10 border border-ios-red/25 rounded-ios-control px-3.5 py-3 mb-5">
+                <p className="text-[12px] text-ios-red font-medium leading-snug text-center">
+                  Tu tiempo de prueba expiró y la demo anterior se borró. Escribí el nombre de tu local para crear
+                  una demo nueva.
+                </p>
+              </div>
             ) : (
-              'Probar demo sin registrarme'
+              <div className="bg-ios-tint/10 border border-ios-tint/25 rounded-ios-control px-3.5 py-3 mb-5">
+                <p className="text-[12px] text-ios-tint font-medium leading-snug text-center">
+                  ¿Ya probaste la demo? Escribí el mismo nombre de local y volvés a entrar con todos tus datos.
+                  Se conservan 7 días.
+                </p>
+              </div>
             )}
-          </IosButton>
-        </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[13px] text-ios-secondary font-medium ml-1">Nombre de tu local</label>
+                <input
+                  type="text"
+                  value={local}
+                  onChange={(e) => setLocal(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleDemo();
+                  }}
+                  maxLength={60}
+                  className="w-full px-4 py-3 bg-ios-surface2 rounded-ios-control text-ios-label placeholder:text-ios-tertiary focus:outline-none focus:ring-2 focus:ring-ios-tint/40 transition-all"
+                  placeholder="Ej: Tienda Los Andes"
+                  autoFocus
+                />
+              </div>
+              <IosButton
+                type="button"
+                onClick={handleDemo}
+                disabled={demoLoading || !local.trim()}
+                size="lg"
+                className="w-full py-3.5 rounded-ios-pill"
+                variant="primary"
+              >
+                {demoLoading ? (
+                  <>
+                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Preparando demo...
+                  </>
+                ) : (
+                  'Probar demo sin registrarme'
+                )}
+              </IosButton>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

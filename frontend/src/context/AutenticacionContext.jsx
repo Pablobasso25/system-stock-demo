@@ -102,10 +102,10 @@ export const AutenticacionProvider = ({ children }) => {
     return () => window.removeEventListener('auth-unauthorized', handleUnauthorized);
   }, [clearSession, toast]);
 
-  const login = useCallback((data) => {
+  const login = useCallback((data, ruta = '/') => {
     setItem('token', data.token);
     setUsuario(normalizarUsuario(data));
-    navigate('/', { replace: true });
+    navigate(ruta, { replace: true });
   }, [navigate]);
 
   const actualizarUsuario = useCallback((data) => {
