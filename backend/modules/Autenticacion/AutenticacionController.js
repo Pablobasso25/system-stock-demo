@@ -64,12 +64,14 @@ export const obtenerPerfil = async (req, res, next) => {
       }
       return res.json({
         _id: tenant._id,
-        nombre: tenant.clientName,
+        nombre: req.usuario.nombre,
+        clientName: tenant.clientName,
         email: tenant.email || '',
         rol: req.usuario.rol,
         tenantId: tenant._id,
         slug: tenant.slug,
         isDemo: true,
+        vendedores: tenant.vendedores || [],
       });
     }
 

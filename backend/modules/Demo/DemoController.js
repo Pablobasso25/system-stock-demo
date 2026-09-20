@@ -42,9 +42,9 @@ const buscarDemoActiva = (clientName) =>
     createdAt: { $gte: new Date(Date.now() - DEMO_TTL_MS) },
   }).sort({ ultimoAcceso: -1, createdAt: -1 });
 
-const firmarTokenDemo = (tenant, rol = 'demo_admin') =>
+const firmarTokenDemo = (tenant, rol = 'demo_admin', nombre) =>
   jwt.sign(
-    { tenantId: tenant._id, slug: tenant.slug, rol },
+    { tenantId: tenant._id, slug: tenant.slug, rol, ...(nombre ? { nombre } : {}) },
     process.env.JWT_SECRET,
     { expiresIn: DEMO_TOKEN_TTL }
   );
@@ -131,13 +131,21 @@ export const switchDemoRole = async (req, res, next) => {
       return res.status(404).json({ message: 'Sesión de demostración expirada' });
     }
 
-    const token = jwt.sign(
-      { tenantId: tenant._id, slug: tenant.slug, rol },
-      process.env.JWT_SECRET,
-      { expiresIn: DEMO_TOKEN_TTL }
-    );
+    let nombre = null;
+    if (rol === 'demo_empleado') {
+      nombre = normalizarNombre(req.body?.nombre).slice(0, 40);
+      if (!nombre) {
+        return res.status(400).json({ message: 'Ingresá el nombre del vendedor' });
+      }
+      await Tenant.updateOne(
+        { _id: tenant._id },
+        { $addToSet: { vendedores: nombre }, $set: { ultimoAcceso: new Date() } }
+      );
+    }
 
-    res.json({ token, rol });
+    const token = firmarTokenDemo(tenant, rol, nombre);
+
+    res.json({ token, rol, nombre: nombre || tenant.clientName });
   } catch (error) {
     next(error);
   }

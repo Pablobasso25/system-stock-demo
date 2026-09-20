@@ -22,6 +22,10 @@ const tenantSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  vendedores: {
+    type: [String],
+    default: [],
+  },
   ultimoAcceso: {
     type: Date,
   },
