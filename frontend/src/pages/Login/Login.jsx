@@ -8,6 +8,7 @@ import IosButton from '../../components/ui/IosButton';
 import { IconEye, IconEyeOff } from '../../components/ui/icons';
 
 const LoginModal = () => {
+  const [showLogin, setShowLogin] = useState(false);
   const [form, setForm] = useState({ email: '', clave: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,6 +41,7 @@ const LoginModal = () => {
   };
 
   const handleDemo = async () => {
+    if (demoLoading) return;
     setError('');
     setDemoLoading(true);
     try {
@@ -48,7 +50,7 @@ const LoginModal = () => {
     } catch (err) {
       if (mountedRef.current) setError(obtenerMensajeErrorApi(err, 'No se pudo crear la sesión demo'));
     } finally {
-      setDemoLoading(false);
+      if (mountedRef.current) setDemoLoading(false);
     }
   };
 
@@ -64,7 +66,7 @@ const LoginModal = () => {
 
         <div className="text-center mb-7">
           <h1 className="text-[28px] font-bold text-ios-label tracking-tight">NexusCode</h1>
-          <p className="text-ios-secondary text-sm mt-1 font-medium">Iniciar sesión</p>
+          <p className="text-ios-secondary text-sm mt-1 font-medium">Sistema de stock</p>
         </div>
 
         {error && (
@@ -76,84 +78,113 @@ const LoginModal = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3.5">
-          <div className="space-y-1.5">
-            <label className="text-[13px] text-ios-secondary font-medium ml-1">Email</label>
-            <input
-              type="email"
-              required
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full px-4 py-3 bg-ios-surface2 rounded-ios-control text-ios-label placeholder:text-ios-tertiary focus:outline-none focus:ring-2 focus:ring-ios-tint/40 transition-all"
-              placeholder="usuario@ejemplo.com"
-              autoFocus
-            />
+        {!showLogin ? (
+          <div className="space-y-4">
+            <IosButton
+              type="button"
+              onClick={handleDemo}
+              disabled={demoLoading}
+              size="lg"
+              className="w-full py-3.5 rounded-ios-pill"
+              variant="primary"
+            >
+              {demoLoading ? (
+                <>
+                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Preparando demo...
+                </>
+              ) : (
+                'Probar demo sin registrarme'
+              )}
+            </IosButton>
+            <p className="text-center text-[11px] text-ios-tertiary">
+              Datos de ejemplo, se restablecen automáticamente cada 7 días
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setError('');
+                setShowLogin(true);
+              }}
+              className="w-full text-center text-[12px] text-ios-tertiary hover:text-ios-secondary transition-colors pt-1"
+            >
+              Acceso administrador
+            </button>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-[13px] text-ios-secondary font-medium ml-1">Contraseña</label>
-            <div className="relative">
-              <input
-                type={showPw ? 'text' : 'password'}
-                required
-                value={form.clave}
-                onChange={(e) => setForm({ ...form, clave: e.target.value })}
-                className="w-full px-4 py-3 pr-11 bg-ios-surface2 rounded-ios-control text-ios-label placeholder:text-ios-tertiary focus:outline-none focus:ring-2 focus:ring-ios-tint/40 transition-all"
-                placeholder="••••••••"
-              />
+        ) : (
+          <>
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              <div className="space-y-1.5">
+                <label className="text-[13px] text-ios-secondary font-medium ml-1">Email</label>
+                <input
+                  type="email"
+                  required
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="w-full px-4 py-3 bg-ios-surface2 rounded-ios-control text-ios-label placeholder:text-ios-tertiary focus:outline-none focus:ring-2 focus:ring-ios-tint/40 transition-all"
+                  placeholder="usuario@ejemplo.com"
+                  autoFocus
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[13px] text-ios-secondary font-medium ml-1">Contraseña</label>
+                <div className="relative">
+                  <input
+                    type={showPw ? 'text' : 'password'}
+                    required
+                    value={form.clave}
+                    onChange={(e) => setForm({ ...form, clave: e.target.value })}
+                    className="w-full px-4 py-3 pr-11 bg-ios-surface2 rounded-ios-control text-ios-label placeholder:text-ios-tertiary focus:outline-none focus:ring-2 focus:ring-ios-tint/40 transition-all"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(!showPw)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ios-tertiary hover:text-ios-label transition-colors p-1"
+                    aria-label={showPw ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    {showPw ? <IconEyeOff className="w-5 h-5" /> : <IconEye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+              <IosButton
+                type="submit"
+                disabled={loading}
+                size="lg"
+                className="w-full py-3.5 rounded-ios-pill mt-2"
+                variant="primary"
+              >
+                {loading ? (
+                  <>
+                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Ingresando...
+                  </>
+                ) : (
+                  'Ingresar'
+                )}
+              </IosButton>
+            </form>
+
+            <div className="mt-6 pt-5 border-t border-ios-separator/50">
               <button
                 type="button"
-                onClick={() => setShowPw(!showPw)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ios-tertiary hover:text-ios-label transition-colors p-1"
-                aria-label={showPw ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                onClick={() => {
+                  setError('');
+                  setShowLogin(false);
+                }}
+                className="w-full text-center text-[12px] text-ios-tertiary hover:text-ios-secondary transition-colors"
               >
-                {showPw ? <IconEyeOff className="w-5 h-5" /> : <IconEye className="w-5 h-5" />}
+                Volver al acceso demo
               </button>
             </div>
-          </div>
-          <IosButton
-            type="submit"
-            disabled={loading}
-            size="lg"
-            className="w-full py-3.5 rounded-ios-pill mt-2"
-            variant="primary"
-          >
-            {loading ? (
-              <>
-                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                Ingresando...
-              </>
-            ) : (
-              'Ingresar'
-            )}
-          </IosButton>
-        </form>
-
-        <div className="mt-6 pt-5 border-t border-ios-separator/50">
-          <button
-            type="button"
-            onClick={handleDemo}
-            disabled={demoLoading}
-            className="w-full flex items-center justify-center gap-2 py-2 text-[13px] font-semibold text-ios-tint hover:opacity-80 disabled:opacity-50 transition-opacity"
-          >
-            {demoLoading ? (
-              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-            ) : (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            )}
-            Probar demo sin registrarme
-          </button>
-          <p className="text-center text-[11px] text-ios-tertiary mt-1">
-            Datos de ejemplo, se restablecen automáticamente cada 7 días
-          </p>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
