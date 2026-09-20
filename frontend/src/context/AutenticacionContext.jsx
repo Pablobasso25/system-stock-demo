@@ -26,14 +26,15 @@ export const AutenticacionProvider = ({ children }) => {
     setUsuario(null);
   }, []);
 
-  const refreshSession = useCallback(() => {
+  const refreshSession = useCallback((options = {}) => {
+    const { silent = false } = options;
     const token = getItem('token');
     if (!token) {
       setUsuario(null);
-      setLoading(false);
+      if (!silent) setLoading(false);
       return Promise.resolve();
     }
-    setLoading(true);
+    if (!silent) setLoading(true);
     return obtenerPerfil()
       .then((res) => {
         setUsuario(res.data);
@@ -46,7 +47,9 @@ export const AutenticacionProvider = ({ children }) => {
         }
         throw err;
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!silent) setLoading(false);
+      });
   }, [clearSession]);
 
   useEffect(() => {

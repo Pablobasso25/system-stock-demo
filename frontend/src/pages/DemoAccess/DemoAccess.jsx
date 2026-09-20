@@ -20,7 +20,7 @@ const DemoAccess = () => {
     let cancelled = false;
     setItem('token', token);
 
-    refreshSession()
+    refreshSession({ silent: true })
       .then(() => {
         if (!cancelled) navigate('/', { replace: true });
       })
