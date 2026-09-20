@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAutenticacion } from '../../context/AutenticacionContext';
 import { switchDemoRole } from '../../api/demo';
 import { setItem } from '../../utils/storage';
+import { IconUsers, IconRefresh } from '../ui/icons';
 import IosModal from '../ui/IosModal';
 import { IosField, IosInput } from '../ui/IosForm';
 
@@ -48,8 +49,8 @@ const DemoBanner = () => {
 
   return (
     <>
-      <div className="bg-ios-yellow/10 border-b border-ios-yellow/20 px-4 py-1.5 shrink-0">
-        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center">
+      <div className="bg-ios-yellow/10 border-b border-ios-yellow/20 px-4 py-2 shrink-0">
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-center">
           <p className="text-[12px] font-medium text-ios-yellow">
             Demo de {tienda} · {esAdmin ? 'Viendo como Administrador' : `Vendedor: ${usuario.nombre}`}
           </p>
@@ -65,8 +66,13 @@ const DemoBanner = () => {
                 : () => aplicarRol({ rol: 'demo_admin' })
             }
             disabled={cambiando}
-            className="text-[11px] font-semibold text-ios-tint border border-ios-tint/40 rounded-ios-pill px-2.5 py-0.5 hover:bg-ios-tint/10 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-white bg-ios-tint hover:bg-ios-tint/90 active:scale-[0.98] disabled:opacity-60 rounded-ios-pill px-3.5 py-1.5 shadow-sm transition-all"
           >
+            {esAdmin ? (
+              <IconUsers className="w-4 h-4 shrink-0" strokeWidth={2} />
+            ) : (
+              <IconRefresh className="w-4 h-4 shrink-0" strokeWidth={2} />
+            )}
             {cambiando ? 'Cambiando...' : esAdmin ? 'Crear cuenta vendedor' : 'Volver a cuenta administrador'}
           </button>
         </div>
