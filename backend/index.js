@@ -1,189 +1,10 @@
 import './config/env.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
-import { connectDB } from './config/db.js';
+import app from './app.js';
 import logger from './utils/LoggerUtils.js';
 import { describirError } from './utils/MensajesErrorUtils.js';
-import { contextoPeticion, registradorPeticiones } from './middlewares/RequestLogger.js';
-import { manejadorErrores } from './middlewares/ErrorMiddleware.js';
-import AutenticacionRoutes from './modules/Autenticacion/AutenticacionRoutes.js';
-import DemoRoutes from './modules/Demo/DemoRoutes.js';
-import ProveedorRoutes from './modules/Proveedor/ProveedorRoutes.js';
-import ProductoRoutes from './modules/Producto/ProductoRoutes.js';
-import MovimientoStockRoutes from './modules/MovimientoStock/MovimientoStockRoutes.js';
-import DevolucionRoutes from './modules/Devolucion/DevolucionRoutes.js';
-import VentaRoutes from './modules/Venta/VentaRoutes.js';
-import NotificacionRoutes from './modules/Notificacion/NotificacionRoutes.js';
-import RetiroCajaRoutes from './modules/RetiroCaja/RetiroCajaRoutes.js';
-import PushRoutes from './modules/Push/PushRoutes.js';
-import ReporteErrorRoutes from './modules/ReporteError/ReporteErrorRoutes.js';
-import MasterRoutes from './modules/Master/MasterRoutes.js';
-import Usuario from './modules/Autenticacion/UsuarioModel.js';
-import Venta from './modules/Venta/VentaModel.js';
-import CierreCaja from './modules/Venta/CierreCajaModel.js';
-import { asegurarNumerosTicket, migrarArticulosVenta } from './modules/Venta/VentaController.js';
-import { ensureMasterTenant } from './services/tenantService.js';
-import { limpiarHuerfanos } from './services/limpiezaHuerfanos.js';
+import { asegurarInicio, limpiarSiCorresponde } from './bootstrap.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const requiredEnv = ['MONGO_URI', 'JWT_SECRET', 'ALLOWED_ORIGINS', 'ADMIN_EMAIL', 'ADMIN_PASSWORD', 'EMPLEADO_EMAIL', 'EMPLEADO_PASSWORD'];
-const missingEnv = requiredEnv.filter((env) => !process.env[env]);
-if (missingEnv.length > 0) {
-  logger.error('Faltan variables de entorno requeridas', {
-    motivo: missingEnv.join(', '),
-    queRevisar: 'Copiá backend/.env.example a backend/.env y completá los valores.',
-    origen: 'backend',
-  });
-  process.exit(1);
-}
-if (process.env.JWT_SECRET.length < 32 || process.env.JWT_SECRET.includes('cambia_esto')) {
-  logger.error('El secreto de sesión (JWT_SECRET) no es válido', {
-    motivo: 'Debe tener al menos 32 caracteres y no ser un valor de ejemplo.',
-    queRevisar: 'Generá uno nuevo con: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"',
-    origen: 'backend',
-  });
-  process.exit(1);
-}
-
-if (process.env.NODE_ENV === 'production') {
-  const clavesEjemplo = [
-    process.env.ADMIN_PASSWORD === 'nexus2026',
-    process.env.EMPLEADO_PASSWORD === 'empleado123',
-  ];
-  if (clavesEjemplo.some(Boolean)) {
-    logger.error('Las contraseñas de ejemplo no se pueden usar en producción', {
-      motivo: 'ADMIN_PASSWORD o EMPLEADO_PASSWORD conservan los valores de backend/.env.example.',
-      queRevisar: 'Definí contraseñas propias y seguras en las variables de entorno del servidor.',
-      origen: 'backend',
-    });
-    process.exit(1);
-  }
-}
-
-const app = express();
-const isDev = process.env.NODE_ENV !== 'production';
 const PORT = process.env.PORT || 5000;
-
-app.set('trust proxy', 1);
-
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:5174')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
-app.use(contextoPeticion);
-app.use(cors({ origin: allowedOrigins }));
-app.use(helmet());
-app.use(express.json({ limit: '1mb' }));
-app.use(registradorPeticiones);
-
-const rateLimitBase = {
-  windowMs: 15 * 60 * 1000,
-  standardHeaders: true,
-  legacyHeaders: false,
-};
-
-const authLimiter = rateLimit({
-  ...rateLimitBase,
-  limit: 30,
-  message: { message: 'Demasiados intentos. Intente de nuevo en 15 minutos.' },
-});
-
-const globalLimiter = rateLimit({
-  ...rateLimitBase,
-  limit: 1500,
-  message: { message: 'Demasiadas peticiones. Intente de nuevo en unos minutos.' },
-});
-
-const writeLimiter = rateLimit({
-  ...rateLimitBase,
-  limit: 300,
-  message: { message: 'Demasiadas operaciones. Intente de nuevo en unos minutos.' },
-});
-
-const errorLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  limit: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { message: 'Demasiados reportes de error. Intente más tarde.' },
-});
-
-const soloEscrituras = (limiter) => (req, res, next) =>
-  req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS' ? next() : limiter(req, res, next);
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
-
-app.use('/api', globalLimiter);
-app.use('/api', soloEscrituras(writeLimiter));
-app.use('/api/auth/login', authLimiter);
-app.use('/api/auth', AutenticacionRoutes);
-app.use('/api/demo', DemoRoutes);
-app.use('/api/proveedores', ProveedorRoutes);
-app.use('/api/productos', ProductoRoutes);
-app.use('/api/movimientos-stock', MovimientoStockRoutes);
-app.use('/api/devoluciones', DevolucionRoutes);
-app.use('/api/ventas', VentaRoutes);
-app.use('/api/notificaciones', NotificacionRoutes);
-app.use('/api/retiros-caja', RetiroCajaRoutes);
-app.use('/api/master', MasterRoutes);
-app.use('/api/push', PushRoutes);
-app.use('/api/errores', errorLimiter, ReporteErrorRoutes);
-
-app.use('/api', (req, res) => {
-  res.status(404).json({ message: 'Ruta no encontrada' });
-});
-
-if (!isDev) {
-  const frontendDist = path.resolve(__dirname, '..', 'frontend', 'dist');
-  app.use(express.static(frontendDist));
-  app.use((req, res) => {
-    res.sendFile(path.join(frontendDist, 'index.html'), (error) => {
-      if (!error || res.headersSent) return;
-      res.status(404).json({ message: 'Frontend no compilado' });
-    });
-  });
-}
-
-app.use(manejadorErrores);
-
-const sembrarUsuario = async (nombre, email, clave, rol, tenantId) => {
-  const emailNormalizado = String(email || '').trim().toLowerCase();
-  const existe = await Usuario.exists({ email: emailNormalizado });
-  if (existe) return;
-  try {
-    await Usuario.create({ nombre, email: emailNormalizado, clave, rol, tenantId });
-  } catch (error) {
-    if (error.code !== 11000) throw error;
-  }
-};
-
-const sembrarUsuarios = async (masterTenantId) => {
-  try {
-    await sembrarUsuario('Admin', process.env.ADMIN_EMAIL, process.env.ADMIN_PASSWORD, 'admin', masterTenantId);
-    logger.debug('Usuario admin verificado');
-
-    await sembrarUsuario('Empleado', process.env.EMPLEADO_EMAIL, process.env.EMPLEADO_PASSWORD, 'user', masterTenantId);
-    logger.debug('Usuario empleado verificado');
-  } catch (error) {
-    const d = describirError(error);
-    logger.error('No se pudieron crear los usuarios iniciales', {
-      motivo: d.titulo,
-      detalle: d.detalle,
-      queRevisar: d.queRevisar || 'Revisá la conexión a la base de datos.',
-      origen: 'backend',
-      stack: error.stack,
-    });
-  }
-};
 
 let cerrando = false;
 
@@ -211,40 +32,11 @@ process.on('uncaughtException', (error) => {
   cerrarConError('Uncaught exception', error);
 });
 
-connectDB()
-  .then(async () => {
-    const masterTenant = await ensureMasterTenant();
-    await sembrarUsuarios(masterTenant._id);
-
-    const limpiar = () =>
-      limpiarHuerfanos().catch((error) => {
-        logger.warn('No se pudieron limpiar los datos huérfanos', {
-          motivo: error.message,
-          origen: 'backend',
-          lugar: 'limpiezaHuerfanos',
-        });
-      });
-    void limpiar();
-    const intervaloLimpieza = setInterval(limpiar, 6 * 60 * 60 * 1000);
+asegurarInicio()
+  .then(() => {
+    const intervaloLimpieza = setInterval(limpiarSiCorresponde, 60 * 60 * 1000);
     intervaloLimpieza.unref();
 
-    try {
-      await Venta.init();
-      await CierreCaja.init();
-      const itemsMigrados = await migrarArticulosVenta();
-      if (itemsMigrados > 0) logger.info(`Ventas legacy migradas al formato articulos[]: ${itemsMigrados}`);
-      const migradas = await asegurarNumerosTicket();
-      if (migradas > 0) logger.info(`Números de ticket asignados a ${migradas} ventas existentes`);
-    } catch (error) {
-      const d = describirError(error);
-      logger.error('No se pudieron asignar los números de ticket pendientes', {
-        motivo: d.titulo,
-        detalle: d.detalle,
-        queRevisar: d.queRevisar,
-        origen: 'backend',
-        stack: error.stack,
-      });
-    }
     const server = app.listen(PORT, () => {
       logger.info('Servidor corriendo', {
         puerto: PORT,
@@ -252,6 +44,7 @@ connectDB()
         nivelDeDetalle: logger.level,
       });
     });
+
     server.on('error', (error) => {
       if (error.code === 'EADDRINUSE') {
         logger.error('El puerto ya está en uso', {
@@ -272,14 +65,6 @@ connectDB()
       process.exit(1);
     });
   })
-  .catch((error) => {
-    const d = describirError(error);
-    logger.error('No se pudo iniciar el servidor', {
-      motivo: d.titulo,
-      detalle: d.detalle,
-      queRevisar: d.queRevisar || 'Verificá MONGO_URI y que la base esté disponible.',
-      origen: 'backend',
-      stack: error.stack,
-    });
+  .catch(() => {
     process.exit(1);
   });
