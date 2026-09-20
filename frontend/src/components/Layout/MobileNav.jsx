@@ -20,14 +20,14 @@ const MobileNav = () => {
   const visibleLinks = links.filter((link) => !link.adminOnly || isAdmin);
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-ios-surface/90 backdrop-blur-2xl border-t border-ios-separator/50 safe-bottom">
-      <div className="grid grid-cols-7">
+      <div className="grid" style={{ gridTemplateColumns: `repeat(${visibleLinks.length}, minmax(0, 1fr))` }}>
         {visibleLinks.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
             end={link.to === '/'}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 pt-2 pb-1 text-[10px] font-semibold transition-all duration-200 ${
+              `flex flex-col items-center gap-1 pt-2 pb-1 min-w-0 text-[9px] font-semibold tracking-tight transition-all duration-200 ${
                 isActive ? 'text-ios-tint' : 'text-ios-tertiary hover:text-ios-secondary'
               }`
             }
@@ -52,7 +52,7 @@ const MobileNav = () => {
                     </span>
                   )}
                 </span>
-                {link.label}
+                <span className="w-full truncate text-center leading-tight">{link.label}</span>
               </>
             )}
           </NavLink>
