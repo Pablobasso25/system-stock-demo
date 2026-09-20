@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Usuario from './UsuarioModel.js';
 import Tenant from '../../models/Tenant.js';
+import { ROLES_DEMO } from '../Demo/demoRoles.js';
 import { iniciarSesionSchema } from './AutenticacionSchema.js';
 import { ensureMasterTenant } from '../../services/tenantService.js';
 
@@ -52,7 +53,7 @@ export const iniciarSesion = async (req, res, next) => {
 
 export const obtenerPerfil = async (req, res, next) => {
   try {
-    if (req.usuario.rol === 'demo_admin') {
+    if (ROLES_DEMO.includes(req.usuario.rol)) {
       const tenant = await Tenant.findById(req.usuario.tenantId);
       if (!tenant) {
         return res.status(404).json({ message: 'Sesión de demostración expirada' });
@@ -61,7 +62,7 @@ export const obtenerPerfil = async (req, res, next) => {
         _id: tenant._id,
         nombre: tenant.clientName,
         email: tenant.email || '',
-        rol: 'demo_admin',
+        rol: req.usuario.rol,
         tenantId: tenant._id,
         slug: tenant.slug,
         isDemo: true,

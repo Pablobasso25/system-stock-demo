@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { createDemoSession } from './DemoController.js';
+import { createDemoSession, switchDemoRole } from './DemoController.js';
+import { proteger } from '../../middlewares/AutenticacionMiddleware.js';
 
 const demoSessionLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
@@ -13,5 +14,6 @@ const demoSessionLimiter = rateLimit({
 const router = Router();
 
 router.post('/create-session', demoSessionLimiter, createDemoSession);
+router.post('/switch-role', proteger, switchDemoRole);
 
 export default router;

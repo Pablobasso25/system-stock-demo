@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import Usuario from '../modules/Autenticacion/UsuarioModel.js';
 import Tenant from '../models/Tenant.js';
+import { ROLES_DEMO } from '../modules/Demo/demoRoles.js';
 import { runWithTenant } from '../services/tenantScope.js';
 import { ensureMasterTenant } from '../services/tenantService.js';
 
@@ -20,7 +21,7 @@ export const proteger = async (req, res, next) => {
 
   const rol = decoded.rol || decoded.role;
 
-  if (rol === 'demo_admin') {
+  if (ROLES_DEMO.includes(rol)) {
     if (!decoded.tenantId) {
       return res.status(403).json({ message: 'No autorizado, el token no pertenece a un tenant' });
     }
@@ -34,7 +35,7 @@ export const proteger = async (req, res, next) => {
         id: null,
         nombre: tenant.clientName,
         email: tenant.email || '',
-        rol: 'demo_admin',
+        rol,
         tenantId: tenant._id,
       };
       return runWithTenant(req.tenantId, () => next());

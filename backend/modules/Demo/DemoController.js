@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import Tenant from '../../models/Tenant.js';
 import Producto from '../Producto/ProductoModel.js';
 import { DEMO_PRODUCTS } from './demoCatalog.js';
+import { ROLES_DEMO } from './demoRoles.js';
 
 const DEMO_TOKEN_TTL = '7d';
 
@@ -59,6 +60,34 @@ export const createDemoSession = async (req, res, next) => {
       fullUrl: `${origin}/demo-access?token=${token}`,
       expiresIn: 604800,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const switchDemoRole = async (req, res, next) => {
+  try {
+    if (!ROLES_DEMO.includes(req.usuario?.rol)) {
+      return res.status(403).json({ message: 'Solo disponible en sesiones de demostración' });
+    }
+
+    const rol = String(req.body?.rol || '');
+    if (!ROLES_DEMO.includes(rol)) {
+      return res.status(400).json({ message: 'Rol inválido' });
+    }
+
+    const tenant = await Tenant.findById(req.tenantId);
+    if (!tenant) {
+      return res.status(404).json({ message: 'Sesión de demostración expirada' });
+    }
+
+    const token = jwt.sign(
+      { tenantId: tenant._id, slug: tenant.slug, rol },
+      process.env.JWT_SECRET,
+      { expiresIn: DEMO_TOKEN_TTL }
+    );
+
+    res.json({ token, rol });
   } catch (error) {
     next(error);
   }
