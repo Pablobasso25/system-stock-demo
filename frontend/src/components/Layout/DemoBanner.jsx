@@ -6,7 +6,7 @@ import IosModal from '../ui/IosModal';
 import { IosField, IosInput } from '../ui/IosForm';
 
 const DemoBanner = () => {
-  const { usuario, refreshSession } = useAutenticacion();
+  const { usuario, actualizarUsuario } = useAutenticacion();
   const [modalOpen, setModalOpen] = useState(false);
   const [vendedor, setVendedor] = useState('');
   const [error, setError] = useState('');
@@ -23,7 +23,7 @@ const DemoBanner = () => {
     try {
       const res = await switchDemoRole({ rol, nombre });
       setItem('token', res.data.token);
-      await refreshSession({ silent: true });
+      actualizarUsuario(res.data.perfil);
       return true;
     } catch (err) {
       setError(err.response?.data?.message || 'No se pudo cambiar la cuenta');

@@ -87,11 +87,18 @@ export const AutenticacionProvider = ({ children }) => {
     navigate('/', { replace: true });
   }, [navigate]);
 
+  const actualizarUsuario = useCallback((data) => {
+    setUsuario(normalizarUsuario(data));
+  }, []);
+
   const logout = useCallback(() => {
     clearSession();
   }, [clearSession]);
 
-  const value = useMemo(() => ({ usuario, loading, login, logout, refreshSession }), [usuario, loading, login, logout, refreshSession]);
+  const value = useMemo(
+    () => ({ usuario, loading, login, logout, refreshSession, actualizarUsuario }),
+    [usuario, loading, login, logout, refreshSession, actualizarUsuario]
+  );
 
   return (
     <AutenticacionContext.Provider value={value}>
