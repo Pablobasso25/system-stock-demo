@@ -30,6 +30,7 @@ export const proteger = async (req, res, next) => {
       if (!tenant) {
         return res.status(401).json({ message: 'Sesión de demostración expirada' });
       }
+      req.tenant = tenant;
       req.tenantId = tenant._id;
       const nombre = rol === 'demo_empleado' && decoded.nombre ? decoded.nombre : tenant.clientName;
       req.usuario = {

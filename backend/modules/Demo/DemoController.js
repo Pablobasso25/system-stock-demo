@@ -126,26 +126,42 @@ export const switchDemoRole = async (req, res, next) => {
       return res.status(400).json({ message: 'Rol inválido' });
     }
 
-    const tenant = await Tenant.findById(req.tenantId);
-    if (!tenant) {
-      return res.status(404).json({ message: 'Sesión de demostración expirada' });
-    }
-
     let nombre = null;
+    let tenant;
     if (rol === 'demo_empleado') {
       nombre = normalizarNombre(req.body?.nombre).slice(0, 40);
       if (!nombre) {
         return res.status(400).json({ message: 'Ingresá el nombre del vendedor' });
       }
-      await Tenant.updateOne(
-        { _id: tenant._id },
-        { $addToSet: { vendedores: nombre }, $set: { ultimoAcceso: new Date() } }
+      tenant = await Tenant.findByIdAndUpdate(
+        req.tenantId,
+        { $addToSet: { vendedores: nombre }, $set: { ultimoAcceso: new Date() } },
+        { new: true }
       );
+    } else {
+      tenant = req.tenant;
+    }
+
+    if (!tenant) {
+      return res.status(404).json({ message: 'Sesión de demostración expirada' });
     }
 
     const token = firmarTokenDemo(tenant, rol, nombre);
 
-    res.json({ token, rol, nombre: nombre || tenant.clientName });
+    res.json({
+      token,
+      perfil: {
+        _id: tenant._id,
+        nombre: nombre || tenant.clientName,
+        clientName: tenant.clientName,
+        email: tenant.email || '',
+        rol,
+        tenantId: tenant._id,
+        slug: tenant.slug,
+        isDemo: true,
+        vendedores: tenant.vendedores || [],
+      },
+    });
   } catch (error) {
     next(error);
   }
