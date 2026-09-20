@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { DEMO_DURACION_SEGUNDOS } from '../config/demo.js';
 
 const tenantSchema = new mongoose.Schema({
   slug: {
@@ -38,7 +39,7 @@ const tenantSchema = new mongoose.Schema({
 tenantSchema.index(
   { createdAt: 1 },
   {
-    expireAfterSeconds: 604800,
+    expireAfterSeconds: DEMO_DURACION_SEGUNDOS,
     partialFilterExpression: { isDemo: true },
   }
 );

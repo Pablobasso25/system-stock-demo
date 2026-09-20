@@ -11,6 +11,7 @@ import RetiroCaja from '../modules/RetiroCaja/RetiroCajaModel.js';
 import RetiroCajaDia from '../modules/RetiroCaja/RetiroCajaDiaModel.js';
 import CierreCaja from '../modules/Venta/CierreCajaModel.js';
 import SuscripcionPush from '../modules/Push/PushModel.js';
+import Tenant from '../models/Tenant.js';
 import { ensureMasterTenant } from '../services/tenantService.js';
 
 const MODELS = [
@@ -69,10 +70,10 @@ const run = async () => {
     }
   }
 
-  for (const Model of [...MODELS, Usuario]) {
+  for (const Model of [...MODELS, Usuario, Tenant]) {
     await Model.syncIndexes();
   }
-  console.log('Índices sincronizados (compuestos por tenantId)');
+  console.log('Índices sincronizados (compuestos por tenantId y TTL de demos)');
 
   console.log(`Migración completada. Total de documentos asignados: ${total}`);
   process.exit(0);

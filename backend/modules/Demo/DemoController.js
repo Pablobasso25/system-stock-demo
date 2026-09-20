@@ -3,9 +3,7 @@ import Tenant from '../../models/Tenant.js';
 import Producto from '../Producto/ProductoModel.js';
 import { DEMO_PRODUCTS } from './demoCatalog.js';
 import { ROLES_DEMO } from './demoRoles.js';
-
-const DEMO_TOKEN_TTL = '7d';
-const DEMO_TTL_MS = 604800 * 1000;
+import { DEMO_DURACION_SEGUNDOS, DEMO_TOKEN_TTL, DEMO_TTL_MS } from '../../config/demo.js';
 
 const generarSlug = () => `demo-${Math.floor(10000 + Math.random() * 90000)}`;
 
@@ -58,7 +56,7 @@ const respuestaDemo = (req, tenant, token, resumed) => {
     resumed,
     accessUrl: `/demo-access?token=${token}`,
     fullUrl: `${origin}/demo-access?token=${token}`,
-    expiresIn: 604800,
+    expiresIn: DEMO_DURACION_SEGUNDOS,
   };
 };
 
