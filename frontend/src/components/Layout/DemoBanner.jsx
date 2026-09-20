@@ -29,7 +29,7 @@ const DemoBanner = () => {
     <div className="bg-ios-yellow/10 border-b border-ios-yellow/20 px-4 py-1.5 shrink-0">
       <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center">
         <p className="text-[12px] font-medium text-ios-yellow">
-          Modo Demostración · Viendo como {esAdmin ? 'Administrador' : 'Empleado'}
+          Demo de {usuario.nombre} · Viendo como {esAdmin ? 'Administrador' : 'Empleado'}
         </p>
         <button
           type="button"

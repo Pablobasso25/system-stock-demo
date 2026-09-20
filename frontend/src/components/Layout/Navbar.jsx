@@ -39,7 +39,7 @@ const Navbar = () => {
                 <div className="absolute right-0 top-full mt-1.5 z-50 w-64 bg-ios-surface/95 backdrop-blur-2xl border border-ios-separator/40 rounded-2xl shadow-ios-alert overflow-hidden p-1.5 animate-ios-modal">
                   <div className="px-4 py-3">
                     <p className="text-[11px] text-ios-tertiary uppercase tracking-wide font-medium">Conectado como</p>
-                    <p className="text-[13px] font-semibold text-ios-label mt-0.5 truncate">{usuario.email}</p>
+                    <p className="text-[13px] font-semibold text-ios-label mt-0.5 truncate">{usuario.email || usuario.slug || usuario.nombre}</p>
                   </div>
                   <div className="h-px bg-ios-separator/40 my-1" />
                   <button

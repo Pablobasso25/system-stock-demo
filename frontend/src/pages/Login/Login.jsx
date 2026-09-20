@@ -9,6 +9,7 @@ import { IconEye, IconEyeOff } from '../../components/ui/icons';
 
 const LoginModal = () => {
   const [showLogin, setShowLogin] = useState(false);
+  const [local, setLocal] = useState('');
   const [form, setForm] = useState({ email: '', clave: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -42,10 +43,15 @@ const LoginModal = () => {
 
   const handleDemo = async () => {
     if (demoLoading) return;
+    const clientName = local.trim();
+    if (!clientName) {
+      setError('Ingresá el nombre de tu local para probar la demo');
+      return;
+    }
     setError('');
     setDemoLoading(true);
     try {
-      const res = await createDemoSession();
+      const res = await createDemoSession({ clientName });
       navigate(`/demo-access?token=${res.data.token}`, { replace: true });
     } catch (err) {
       if (mountedRef.current) setError(obtenerMensajeErrorApi(err, 'No se pudo crear la sesión demo'));
@@ -80,10 +86,22 @@ const LoginModal = () => {
 
         {!showLogin ? (
           <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[13px] text-ios-secondary font-medium ml-1">Nombre de tu local</label>
+              <input
+                type="text"
+                value={local}
+                onChange={(e) => setLocal(e.target.value)}
+                maxLength={60}
+                className="w-full px-4 py-3 bg-ios-surface2 rounded-ios-control text-ios-label placeholder:text-ios-tertiary focus:outline-none focus:ring-2 focus:ring-ios-tint/40 transition-all"
+                placeholder="Ej: Tienda Los Andes"
+                autoFocus
+              />
+            </div>
             <IosButton
               type="button"
               onClick={handleDemo}
-              disabled={demoLoading}
+              disabled={demoLoading || !local.trim()}
               size="lg"
               className="w-full py-3.5 rounded-ios-pill"
               variant="primary"
