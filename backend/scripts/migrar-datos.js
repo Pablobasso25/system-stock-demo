@@ -43,6 +43,9 @@ const TAREAS = [
   { coleccion: 'movimientosStock', pares: [['createdAt', 'fechaCreacion'], ['updatedAt', 'fechaActualizacion']] },
   { coleccion: 'cierresCaja', pares: [['desdeAt', 'desde'], ['hastaAt', 'hasta'], ['abiertoAt', 'abiertaEn'], ['cerradoAt', 'cerradaEn']] },
   { coleccion: 'retirosCaja', pares: [['createdAt', 'fechaCreacion'], ['updatedAt', 'fechaActualizacion']] },
+  { coleccion: 'proveedores', pares: [['createdAt', 'fechaCreacion'], ['updatedAt', 'fechaActualizacion']] },
+  { coleccion: 'notificaciones', pares: [['createdAt', 'fechaCreacion'], ['updatedAt', 'fechaActualizacion']] },
+  { coleccion: 'suscripcionesPush', pares: [['createdAt', 'fechaCreacion'], ['updatedAt', 'fechaActualizacion']] },
 ];
 
 const run = async () => {
