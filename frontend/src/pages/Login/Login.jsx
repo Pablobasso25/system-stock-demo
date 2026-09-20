@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { iniciarSesion } from '../../api/autenticacion';
-import { createDemoSession } from '../../api/demo';
+import { enterDemoSession } from '../../api/demo';
 import { useAutenticacion } from '../../context/AutenticacionContext';
 import { obtenerMensajeErrorApi } from '../../utils/apiError';
 import IosButton from '../../components/ui/IosButton';
@@ -51,10 +51,10 @@ const LoginModal = () => {
     setError('');
     setDemoLoading(true);
     try {
-      const res = await createDemoSession({ clientName });
+      const res = await enterDemoSession({ clientName });
       navigate(`/demo-access?token=${res.data.token}`, { replace: true });
     } catch (err) {
-      if (mountedRef.current) setError(obtenerMensajeErrorApi(err, 'No se pudo crear la sesión demo'));
+      if (mountedRef.current) setError(obtenerMensajeErrorApi(err, 'No se pudo iniciar la sesión demo'));
     } finally {
       if (mountedRef.current) setDemoLoading(false);
     }
@@ -119,7 +119,8 @@ const LoginModal = () => {
               )}
             </IosButton>
             <p className="text-center text-[11px] text-ios-tertiary">
-              Datos de ejemplo, se restablecen automáticamente cada 7 días
+              Si ya probaste antes, escribí el mismo nombre de local y volvés a entrar con tus datos.
+              Se conservan 7 días.
             </p>
             <button
               type="button"
