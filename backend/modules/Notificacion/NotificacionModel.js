@@ -23,6 +23,11 @@ const notificationSchema = new mongoose.Schema(
       ref: 'Usuario',
       default: null,
     },
+    creadoPorNombre: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     realizadoPor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Usuario',

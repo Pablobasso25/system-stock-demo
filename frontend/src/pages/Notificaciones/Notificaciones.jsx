@@ -287,7 +287,7 @@ const Notificaciones = () => {
             <div className="flex items-start justify-between gap-3">
               <span className="text-ios-tertiary text-xs shrink-0 pt-0.5">Creado por</span>
               <span className="text-ios-secondary text-right text-[13px]">
-                {detail?.creadoPor?.nombre || '—'} · {formatDate(detail?.fechaCreacion)}
+                {detail?.creadoPorNombre || detail?.creadoPor?.nombre || '—'} · {formatDate(detail?.fechaCreacion)}
               </span>
             </div>
             {detail?.estado === 'realizado' && (

@@ -28,6 +28,7 @@ export const crearNotificacion = async (req, res, next) => {
     const notificacion = await Notificacion.create({
       ...data,
       creadoPor: req.usuario.id || null,
+      creadoPorNombre: req.usuario.nombre || '',
     });
 
     void enviarEvento({
