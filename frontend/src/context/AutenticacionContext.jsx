@@ -8,6 +8,16 @@ const AutenticacionContext = createContext();
 
 export const useAutenticacion = () => useContext(AutenticacionContext);
 
+const normalizarUsuario = (data) => {
+  if (data?.rol === 'demo_admin') {
+    return { ...data, rol: 'admin', rolDemo: 'demo_admin', esDemo: true };
+  }
+  if (data?.rol === 'demo_empleado') {
+    return { ...data, rol: 'user', rolDemo: 'demo_empleado', esDemo: true };
+  }
+  return data;
+};
+
 export const AutenticacionProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -37,8 +47,9 @@ export const AutenticacionProvider = ({ children }) => {
     if (!silent) setLoading(true);
     return obtenerPerfil()
       .then((res) => {
-        setUsuario(res.data);
-        return res.data;
+        const usuario = normalizarUsuario(res.data);
+        setUsuario(usuario);
+        return usuario;
       })
       .catch((err) => {
         const status = err.response?.status;
@@ -72,7 +83,7 @@ export const AutenticacionProvider = ({ children }) => {
 
   const login = useCallback((data) => {
     setItem('token', data.token);
-    setUsuario(data);
+    setUsuario(normalizarUsuario(data));
     navigate('/', { replace: true });
   }, [navigate]);
 
