@@ -26,6 +26,7 @@ import Venta from './modules/Venta/VentaModel.js';
 import CierreCaja from './modules/Venta/CierreCajaModel.js';
 import { asegurarNumerosTicket, migrarArticulosVenta } from './modules/Venta/VentaController.js';
 import { ensureMasterTenant } from './services/tenantService.js';
+import { limpiarHuerfanos } from './services/limpiezaHuerfanos.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -212,6 +213,19 @@ connectDB()
   .then(async () => {
     const masterTenant = await ensureMasterTenant();
     await sembrarUsuarios(masterTenant._id);
+
+    const limpiar = () =>
+      limpiarHuerfanos().catch((error) => {
+        logger.warn('No se pudieron limpiar los datos huérfanos', {
+          motivo: error.message,
+          origen: 'backend',
+          lugar: 'limpiezaHuerfanos',
+        });
+      });
+    void limpiar();
+    const intervaloLimpieza = setInterval(limpiar, 6 * 60 * 60 * 1000);
+    intervaloLimpieza.unref();
+
     try {
       await Venta.init();
       await CierreCaja.init();

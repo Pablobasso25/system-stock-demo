@@ -1,20 +1,8 @@
 import mongoose from 'mongoose';
 import '../config/env.js';
+import { limpiarHuerfanos, COLECCIONES_HUERFANOS } from '../services/limpiezaHuerfanos.js';
 
 const APPLY = process.argv.includes('--apply');
-
-const COLECCIONES = [
-  'productos',
-  'ventas',
-  'devoluciones',
-  'proveedores',
-  'notificaciones',
-  'movimientosStock',
-  'retirosCaja',
-  'retirosCajaDias',
-  'cierresCaja',
-  'suscripcionesPush',
-];
 
 const run = async () => {
   await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 15000 });
@@ -22,40 +10,25 @@ const run = async () => {
 
   console.log(APPLY ? 'MODO APPLY: se eliminarán los datos huérfanos' : 'MODO DRY-RUN: no se modifica nada');
 
-  const tenants = await db.collection('tenants').find({}, { projection: { _id: 1 } }).toArray();
-  const idsVigentes = tenants.map((t) => t._id);
-  console.log(`Tenants vigentes: ${idsVigentes.length}`);
+  const resultado = await limpiarHuerfanos({ apply: APPLY });
 
   let total = 0;
+  for (const r of resultado) {
+    console.log(`${APPLY ? '[limpiada]' : '[pendiente]'} ${r.coleccion}: ${r.cantidad} documento(s) huérfano(s)`);
+    total += r.cantidad;
+  }
+  if (resultado.length === 0) console.log('No hay datos huérfanos.');
+
   let sinTenant = 0;
-
-  for (const nombre of COLECCIONES) {
-    const huerfanos = { tenantId: { $exists: true, $ne: null, $nin: idsVigentes } };
-    const cantidad = await db.collection(nombre).countDocuments(huerfanos);
-
+  for (const nombre of COLECCIONES_HUERFANOS) {
     const faltantes = await db.collection(nombre).countDocuments({
       $or: [{ tenantId: { $exists: false } }, { tenantId: null }],
     });
     sinTenant += faltantes;
-    if (faltantes > 0) {
-      console.log(`[revisar] ${nombre}: ${faltantes} documento(s) sin tenantId (no se eliminan)`);
-    }
-
-    if (cantidad === 0) continue;
-
-    if (!APPLY) {
-      console.log(`[pendiente] ${nombre}: ${cantidad} documento(s) huérfano(s)`);
-      total += cantidad;
-      continue;
-    }
-
-    const resultado = await db.collection(nombre).deleteMany(huerfanos);
-    total += resultado.deletedCount;
-    console.log(`[limpiada] ${nombre}: ${resultado.deletedCount} documento(s) eliminado(s)`);
   }
+  if (sinTenant > 0) console.log(`[revisar] ${sinTenant} documento(s) sin tenantId (no se eliminan)`);
 
   console.log(`\nResumen: ${total} documento(s) huérfano(s) ${APPLY ? 'eliminado(s)' : 'pendiente(s)'}.`);
-  if (sinTenant > 0) console.log(`Documentos sin tenantId (no tocados): ${sinTenant}`);
   if (!APPLY) console.log('Dry-run finalizado. Para aplicar: node scripts/limpiar-huerfanos.js --apply');
 };
 
