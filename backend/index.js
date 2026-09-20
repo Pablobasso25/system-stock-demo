@@ -21,6 +21,7 @@ import NotificacionRoutes from './modules/Notificacion/NotificacionRoutes.js';
 import RetiroCajaRoutes from './modules/RetiroCaja/RetiroCajaRoutes.js';
 import PushRoutes from './modules/Push/PushRoutes.js';
 import ReporteErrorRoutes from './modules/ReporteError/ReporteErrorRoutes.js';
+import MasterRoutes from './modules/Master/MasterRoutes.js';
 import Usuario from './modules/Autenticacion/UsuarioModel.js';
 import Venta from './modules/Venta/VentaModel.js';
 import CierreCaja from './modules/Venta/CierreCajaModel.js';
@@ -133,6 +134,7 @@ app.use('/api/devoluciones', DevolucionRoutes);
 app.use('/api/ventas', VentaRoutes);
 app.use('/api/notificaciones', NotificacionRoutes);
 app.use('/api/retiros-caja', RetiroCajaRoutes);
+app.use('/api/master', MasterRoutes);
 app.use('/api/push', PushRoutes);
 app.use('/api/errores', errorLimiter, ReporteErrorRoutes);
 

@@ -87,6 +87,14 @@ export const admin = (req, res, next) => {
   }
 };
 
+export const adminReal = (req, res, next) => {
+  if (req.usuario && req.usuario.rol === 'admin') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Acceso denegado, se requiere la cuenta principal' });
+  }
+};
+
 export const blockDemo = (req, res, next) => {
   if (req.usuario && req.usuario.rol === 'demo_admin') {
     return res.status(403).json({ message: 'Acción no disponible en modo demostración' });
