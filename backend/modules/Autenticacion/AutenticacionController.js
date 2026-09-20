@@ -54,7 +54,11 @@ export const iniciarSesion = async (req, res, next) => {
 export const obtenerPerfil = async (req, res, next) => {
   try {
     if (ROLES_DEMO.includes(req.usuario.rol)) {
-      const tenant = await Tenant.findById(req.usuario.tenantId);
+      const tenant = await Tenant.findByIdAndUpdate(
+        req.usuario.tenantId,
+        { $set: { ultimoAcceso: new Date() } },
+        { new: true }
+      );
       if (!tenant) {
         return res.status(404).json({ message: 'Sesión de demostración expirada' });
       }

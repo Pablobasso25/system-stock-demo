@@ -28,7 +28,7 @@ const crearTenantUnico = async (clientName, email) => {
 
 export const createDemoSession = async (req, res, next) => {
   try {
-    const clientName = String(req.body?.clientName || '').trim() || 'Prospecto demo';
+    const clientName = String(req.body?.clientName || '').trim().slice(0, 60) || 'Prospecto demo';
     const email = String(req.body?.email || '').trim().toLowerCase() || undefined;
 
     if (email && !validarEmail(email)) {

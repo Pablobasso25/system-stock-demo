@@ -22,6 +22,9 @@ const tenantSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  ultimoAcceso: {
+    type: Date,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
