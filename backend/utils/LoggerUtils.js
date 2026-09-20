@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const isDev = process.env.NODE_ENV !== 'production';
+const isDev = process.env.NODE_ENV !== 'production' && !process.env.VERCEL;
 const logDir = path.resolve(__dirname, '..', 'logs');
 
 const CAMPOS_SENSIBLES = [
@@ -197,16 +197,20 @@ const transports = [
 ];
 
 if (isDev) {
-  fs.mkdirSync(logDir, { recursive: true });
-  transports.push(
-    new winston.transports.File({
-      filename: path.join(logDir, 'error.log'),
-      level: 'warn',
-      maxsize: 5 * 1024 * 1024,
-      maxFiles: 5,
-      format: winston.format.combine(...formatoBase, formatoJsonEspanol(), winston.format.json()),
-    })
-  );
+  try {
+    fs.mkdirSync(logDir, { recursive: true });
+    transports.push(
+      new winston.transports.File({
+        filename: path.join(logDir, 'error.log'),
+        level: 'warn',
+        maxsize: 5 * 1024 * 1024,
+        maxFiles: 5,
+        format: winston.format.combine(...formatoBase, formatoJsonEspanol(), winston.format.json()),
+      })
+    );
+  } catch {
+    /* entorno sin escritura (serverless): se registra solo en consola */
+  }
 }
 
 const logger = winston.createLogger({
