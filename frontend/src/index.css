@@ -183,6 +183,15 @@ html {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 .safe-top {
   padding-top: env(safe-area-inset-top);
 }
